@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  db:
+    build:
+      context: ./srcs/PostgreSQL
+    container_name: postgres_db
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./srcs/PostgreSQL/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - network
+
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_started
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+    networks:
+      - network
+
+  web:
+    build:
+      context: ./srcs/php
+    container_name: php_web
+    volumes:
+      - ./srcs/php/public:/var/www/html
+    ports:
+      - "8000:80"
+
+volumes:
+  postgres_data:
+
+networks:
+  network:
+    driver: bridge
