@@ -1,25 +1,5 @@
 # Environment variables
 .env
 
-# Dependencies
-/vendor/
-/node_modules/
-
 # IDE
 .vscode/
-.idea/
-
-# Logs
-*.log
-
-# User uploads
-/srcs/php/app/*
-/srcs/php/uploads/*
-!/srcs/php/uploads/.gitkeep
-
-# Database
-/data/
-
-# OS files
-.DS_Store
-Thumbs.db

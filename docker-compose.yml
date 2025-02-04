@@ -36,8 +36,15 @@ services:
     container_name: php_web
     volumes:
       - ./srcs/php/public:/var/www/html
+      - ./srcs/php/app:/var/www/html/app
+    depends_on:
+      - db
+    environment:
+     - .env
     ports:
       - "8000:80"
+    networks:
+      - network
 
 volumes:
   postgres_data:
