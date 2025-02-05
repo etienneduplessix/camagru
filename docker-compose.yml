@@ -16,6 +16,12 @@ services:
     networks:
       - network
 
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "8025:8025" 
+      - "1025:1025"
+  
   adminer:
     image: adminer
     container_name: adminer
@@ -35,8 +41,7 @@ services:
       context: ./srcs/php
     container_name: php_web
     volumes:
-      - ./srcs/php/public:/var/www/html
-      - ./srcs/php/app:/var/www/html/app
+      - ./srcs/php/:/var/www/html
     depends_on:
       - db
     environment:

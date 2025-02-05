@@ -1,0 +1,86 @@
+@import url('https://fonts.googleapis.com/css?family=Open+Sans');
+@import url('https://fonts.googleapis.com/css?family=Fira+Sans:700');
+
+body {
+  background-color:rgba(233, 233, 233, 0.6);
+  margin-top: 70px;
+  font-family: 'Open Sans', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Fira Sans', sans-serif;
+}
+
+hr{
+border-top: 1px dashed #bbb;
+}
+
+img {
+  width: inherit;
+  padding: 0px 10px;
+}
+
+a {
+  text-decoration: none !important;
+}
+/* -------------------------------------------------------------------
+                            BOOTSTRAP
+ ------------------------------------------------------------------- */
+
+.btn-group .btn,
+.alert {
+   background-image: none;
+ }
+.btn-input {
+  display: block;
+}
+
+.btn-input .btn.form-control {
+   text-align: left;
+}
+
+.btn-input .btn.form-control span:first-child {
+  left: 10px;
+  overflow: hidden;
+  position: absolute;
+  right: 25px;
+}
+
+.btn-input .btn.form-control .caret {
+  margin-top: -1px;
+  position: absolute;
+  right: 10px;
+  top: 50%;
+}
+
+/* -------------------------------------------------------------------
+                           LOCAL
+------------------------------------------------------------------- */
+
+.right {
+  text-align: right;
+}
+
+hr.ornament:after {
+  content: '\002702';
+  display: inline-block;
+  position: relative;
+  top: -14px;
+  left: 0px;
+  padding: 0;
+  background-color: inherit;
+  color: #bbb;
+  font-size: 18px;
+}
+
+.img-25 {
+  width: 25%;
+}
+
+.img-33 {
+  width: 33%;
+}
+
+.img-50 {
+  width: 50%;
+}
