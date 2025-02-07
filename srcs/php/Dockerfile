@@ -6,16 +6,12 @@ RUN apt-get update && apt-get install -y \
     git \
     zip \
     unzip \
-    && docker-php-ext-install pgsql pdo pdo_pgsql
-
+    && docker-php-ext-install pgsql pdo pdo_pgsql 
 
 
 # Set working directory
 WORKDIR /var/www/html
 
-# Install Composer and PHPMailer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-RUN composer require phpmailer/phpmailer
 
 # Copy application files
 COPY ./ /var/www/html/

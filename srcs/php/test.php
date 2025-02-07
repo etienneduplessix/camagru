@@ -1,31 +1,46 @@
 <?php
-require 'vendor/autoload.php';
-
-try {
-    // Ensure PHPMailer is available
-    if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
-        throw new Exception("PHPMailer not installed");
+function smtp_mail($to, $subject, $message, $from = 'noreply@example.com', $smtp_server = 'localhost', $smtp_port = 80) {
+    $socket = fsockopen($smtp_server, $smtp_port, $errno, $errstr, 30);
+    if (!$socket) {
+        echo "Failed to connect: $errstr ($errno)";
+        return false;
     }
     
-    $mail = new PHPMailer\PHPMailer\PHPMailer(true);
-    $mail->isSMTP();
-    $mail->Host = 'mailhog'; // Use the service name defined in docker-compose.yml
-    $mail->Port = 1025;       // MailHog's SMTP port
-    $mail->SMTPAuth = false;  // No authentication required for MailHog
+    // Read the initial server response
+    fgets($socket, 515);
     
-    // Recipients
-    $mail->setFrom('from@example.com', 'Mailer');
-    $mail->addAddress('recipient@example.com', 'Recipient'); // Add a recipient
-
-    // Content
-    $mail->isHTML(true);                                  // Set email format to HTML
-    $mail->Subject = 'Here is the subject';
-    $mail->Body    = 'This is the HTML message body <b>in bold!</b>';
-    $mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
-
-    $mail->send();
-    echo 'Message has been sent';
-} catch (Exception $e) {
-    echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+    // Say EHLO
+    fputs($socket, "EHLO localhost\r\n");
+    fgets($socket, 515);
+    
+    // MAIL FROM
+    fputs($socket, "MAIL FROM:<$from>\r\n");
+    fgets($socket, 515);
+    
+    // RCPT TO
+    fputs($socket, "RCPT TO:<$to>\r\n");
+    fgets($socket, 515);
+    
+    // DATA
+    fputs($socket, "DATA\r\n");
+    fgets($socket, 515);
+    
+    // Send email headers and message
+    fputs($socket, "Subject: $subject\r\n");
+    fputs($socket, "From: $from\r\n");
+    fputs($socket, "To: $to\r\n");
+    fputs($socket, "\r\n");  // End headers
+    fputs($socket, "$message\r\n");
+    fputs($socket, ".\r\n");
+    fgets($socket, 515);
+    
+    // QUIT
+    fputs($socket, "QUIT\r\n");
+    fclose($socket);
+    return true;
 }
+
+// Usage:
+$result = smtp_mail('recipient@example.com', 'Test SMTP Email', "Hello,\nThis is a test email sent using a basic SMTP client in PHP.");
+echo $result ? "Email sent." : "Failed to send email.";
 ?>
