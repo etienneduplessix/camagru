@@ -1,10 +1,13 @@
-# .htaccess
 RewriteEngine On
-RewriteBase /
 
-# If the request is not for a file or directory
+# Allow existing files and directories to be served normally
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 
-# Rewrite /register to register.php
-RewriteRule ^register$ register.php [L,QSA]
+# Exclude static assets from the rewrite rule
+RewriteCond %{REQUEST_URI} !\.(css|js|png|jpg|jpeg|gif|ico|woff|woff2|ttf|svg|eot|mp4|webm|ogg|mp3|wav|pdf)$ [NC]
+
+# Redirect everything else to index.php
+RewriteRule ^index$ index.php [L]
+RewriteRule ^login$ login.php [L]
+RewriteRule ^register$ register.php [L]

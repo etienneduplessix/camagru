@@ -1,22 +1,28 @@
 <?php
-// Example usage
-require_once 'MailConfig.php';
 
-// Create a new mailer instance
-$mailer = new MailConfig();
 
-// Send a verification email
-$to = "etienne.dpl01@gmail.com";
-$subject = "Verify your Camagru account";
-$body = "<h1>Welcome to Camagru!</h1>
-         <p>Please click the link below to verify your account:</p>
-         <a href='http://yourdomain.com/verify?token=123456'>Verify Account</a>";
+$data = [
+    'email' => 'testuser@example.com',
+    'password' => 'StrongP@ssw0rd123',
+    'confirm_password' => 'StrongP@ssw0rd123'
+];
 
-// Send the email
-$result = $mailer->sendVerificationMail($to, $subject, $body);
+$options = [
+    'http' => [
+        'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
+        'method' => 'POST',
+        'content' => http_build_query($data),
+    ]
+];
 
-if ($result) {
-    echo "Verification email sent successfully";
+$context = stream_context_create($options);
+$result = file_get_contents($apiUrl, false, $context);
+
+if ($result === FALSE) {
+    echo "Error: Registration test failed!\n";
 } else {
-    echo "Failed to send verification email";
+    echo "Registration test response:\n";
+    echo $result . "\n";
 }
+
+?>

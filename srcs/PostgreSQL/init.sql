@@ -11,12 +11,10 @@ CREATE TABLE users (
     CONSTRAINT unique_username UNIQUE (username)
 );
 
-CREATE TABLE verification_tokens (
+
+CREATE TABLE images (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id),
-    token VARCHAR(64) NOT NULL,
-    expires_at TIMESTAMP NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    used_at TIMESTAMP,
-    UNIQUE(token)
+    user_id INT NOT NULL,
+    image_data BYTEA NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

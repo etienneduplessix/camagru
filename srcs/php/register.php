@@ -1,250 +1,133 @@
 <?php
-// config.php
+session_start();
+
 define('ROOT_DIR', '');
-define('SITE_URL', 'http://localhost:8080'); // Adjust port if different
-define('MIN_PASSWORD_LENGTH', 8);
-define('EMAIL_FROM', 'esusagence@gmail.com');
+require_once(ROOT_DIR . 'includes/loader.php');
+require_once(ROOT_DIR . 'includes/db.php');
+require_once(ROOT_DIR . 'includes/partials/header.php');
 
-// For development/testing only
-define('DEV_MODE', true);
-define('SMTP_HOST', 'mailhog'); // Docker service name for MailHog
-define('SMTP_PORT', 1025);      // Default MailHog SMTP port
+error_log("🔍 Entered register.php");
 
-// register.php
-require_once(ROOT_DIR.'includes/loader.php');
-require_once(ROOT_DIR.'includes/partials/header.php');
-require_once(ROOT_DIR.'includes/db.php');
-require 'vendor/autoload.php';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    error_log("📩 Received POST request");
 
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\SMTP;
-use PHPMailer\PHPMailer\Exception;
+    $apiUrl = 'http://php_web/register_api.php'; // Use Docker service name
 
-class RegistrationHandler {
-    private $conn;
-    private $errors = [];
-    
-    public function __construct($dbConnection) {
-        $this->conn = $dbConnection;
-    }
-    
-    public function handleRegistration() {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            return;
-        }
-        
-        try {
-            $this->validateInput();
-            
-            if (!empty($this->errors)) {
-                $this->setSessionError();
-                return;
-            }
-            
-            $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
-            $username = $this->generateUniqueUsername($email);
-            $password = $_POST['password'];
-            
-            if ($this->isEmailRegistered($email)) {
-                throw new Exception('Email already registered');
-            }
-            
-            $userId = $this->createUser($username, $email, $password);
-            if (!$userId) {
-                throw new Exception('Registration failed');
-            }
-            
-            $verificationToken = $this->generateVerificationToken($userId);
-            if (!$this->sendVerificationEmail($email, $verificationToken)) {
-                error_log("Failed to send verification email to: $email");
-            }
-            
-            $_SESSION['success'] = 'Registration successful! Please check your email to verify your account.';
-            header('Location: /login');
-            exit();
-            
-        } catch (Exception $e) {
-            $this->errors[] = $e->getMessage();
-            $this->setSessionError();
-        }
-    }
-    
-    private function validateInput() {
-        $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
-        $password = $_POST['password'] ?? '';
-        $confirmPassword = $_POST['confirm_password'] ?? '';
-        
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->errors[] = 'Invalid email format';
-        }
-        
-        if (strlen($password) < MIN_PASSWORD_LENGTH) {
-            $this->errors[] = 'Password must be at least ' . MIN_PASSWORD_LENGTH . ' characters long';
-        }
-        
-        if (!preg_match('/[A-Z]/', $password)) {
-            $this->errors[] = 'Password must contain at least one uppercase letter';
-        }
-        
-        if (!preg_match('/[0-9]/', $password)) {
-            $this->errors[] = 'Password must contain at least one number';
-        }
-        
-        if ($password !== $confirmPassword) {
-            $this->errors[] = 'Passwords do not match';
-        }
-    }
-    
-    private function generateUniqueUsername($email) {
-        $username = strtolower(explode('@', $email)[0]);
-        $baseUsername = $username;
-        $counter = 1;
-        
-        while ($this->isUsernameExists($username)) {
-            $username = $baseUsername . $counter;
-            $counter++;
-        }
-        
-        return $username;
-    }
-    
-    private function isUsernameExists($username) {
-        $stmt = pg_prepare($this->conn, "check_username", 'SELECT id FROM users WHERE username = $1');
-        $result = pg_execute($this->conn, "check_username", [$username]);
-        return pg_num_rows($result) > 0;
-    }
-    
-    private function isEmailRegistered($email) {
-        $stmt = pg_prepare($this->conn, "check_email", 'SELECT id FROM users WHERE email = $1');
-        $result = pg_execute($this->conn, "check_email", [$email]);
-        return pg_num_rows($result) > 0;
-    }
-    
-    private function createUser($username, $email, $password) {
-        $passwordHash = password_hash($password, PASSWORD_ARGON2ID, [
-            'memory_cost' => 65536,
-            'time_cost' => 4,
-            'threads' => 3
-        ]);
-        
-        $stmt = pg_prepare($this->conn, "create_user", 
-            'INSERT INTO users (username, email, password_hash, created_at, is_verified) 
-             VALUES ($1, $2, $3, CURRENT_TIMESTAMP, false) RETURNING id'
-        );
-        
-        $result = pg_execute($this->conn, "create_user", [$username, $email, $passwordHash]);
-        
-        if ($result === false) {
-            return false;
-        }
-        
-        $row = pg_fetch_assoc($result);
-        return $row['id'];
-    }
-    
-    private function generateVerificationToken($userId) {
-        $token = bin2hex(random_bytes(32));
-        $expiresAt = date('Y-m-d H:i:s', strtotime('+24 hours'));
-        
-        $stmt = pg_prepare($this->conn, "create_token",
-            'INSERT INTO verification_tokens (user_id, token, expires_at) 
-             VALUES ($1, $2, $3)'
-        );
-        
-        pg_execute($this->conn, "create_token", [$userId, $token, $expiresAt]);
-        return $token;
-    }
-    
-    private function sendVerificationEmail($email, $token) {
-        try {
-            $mail = new PHPMailer(true);
-            $mail->SMTPDebug = SMTP::DEBUG_SERVER;
-            
-            $mail->isSMTP();
-            $mail->Host = 'smtp.gmail.com';
-            $mail->SMTPAuth = true;
-            $mail->Username = 'esusagence@gmail.com';
-            $mail->Password = 'ezsetfubktuskwew';
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port = 587;
-            
-            $mail->setFrom(EMAIL_FROM);
-            $mail->addAddress($email);
-            $mail->Subject = 'Verify Your Account';
-            $mail->isHTML(true);
-            
-            $verificationUrl = SITE_URL . '/verify?token=' . urlencode($token);
-            $mail->Body = "Please click the following link to verify your account:<br>
-                         <a href='$verificationUrl'>$verificationUrl</a>";
-            
-            return $mail->send();
-        } catch (Exception $e) {
-            error_log("Email sending failed: " . $e->getMessage());
-            return false;
-        }
-    }
-    
-    private function setSessionError() {
-        $_SESSION['error'] = implode('<br>', $this->errors);
+    $data = [
+        'username' => trim($_POST['username'] ?? ''),
+        'email'    => trim($_POST['email'] ?? ''),
+        'password' => $_POST['password'] ?? ''
+    ];
+
+    if (empty($data['username']) || empty($data['email']) || empty($data['password'])) {
+        error_log("⚠️ Missing form fields, redirecting.");
+        $_SESSION['errors'] = "All fields are required.";
         header('Location: /register');
-        exit();
+        exit;
     }
+
+    error_log("🚀 Sending request to API: " . $apiUrl);
+    error_log("📝 Data being sent: " . print_r($data, true));
+
+    // Convert data into a query string
+    $postData = http_build_query($data);
+
+    // Set HTTP request options
+    $options = [
+        'http' => [
+            'method'  => 'POST',
+            'header'  => "Content-Type: application/x-www-form-urlencoded\r\n" .
+                         "Content-Length: " . strlen($postData) . "\r\n",
+            'content' => $postData,
+            'timeout' => 10 // Timeout after 10 seconds
+        ]
+    ];
+
+    // Create stream context
+    $context = stream_context_create($options);
+    
+    // Send request and get response
+    $result = @file_get_contents($apiUrl, false, $context);
+
+    // Get HTTP response code
+    $httpCode = isset($http_response_header[0]) ? $http_response_header[0] : "Unknown";
+
+    error_log("📩 API Response: " . ($result ?: "No response"));
+    error_log("🔢 HTTP Code: " . $httpCode);
+
+    if ($result === FALSE) {
+        $_SESSION['errors'] = "Registration failed: Unable to contact the API.";
+    } elseif (strpos($httpCode, "200") === false) {
+        $_SESSION['errors'] = "Registration failed: " . ($result ?: "Unexpected error.");
+    } else {
+        $_SESSION['success'] = "Registration successful! Please check your email.";
+        error_log("✅ Registration success, redirecting to login.");
+        header('Location: /login');
+        exit;
+    }
+
+    error_log("❌ Redirecting to /register due to errors.");
+    header('Location: /register');
+    exit;
 }
 
-$handler = new RegistrationHandler(getConnection());
-$handler->handleRegistration();
-showRegisterForm();
-
+error_log("👀 Showing registration form.");
+showRegistrationForm();
 ?>
 
 
 <?php
-function showRegisterForm() {?>
-<div class="login-container">
-    <h1>Register</h1>
-    <?php if (isset($_SESSION['error'])): ?>
-        <div class="error-message">
-            <?php 
-            echo htmlspecialchars($_SESSION['error']); 
-            unset($_SESSION['error']);
-            ?>
+function showRegistrationForm() { ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Camagru</title>
+    <link rel="stylesheet" href="styl.css">
+</head>
+<body>
+
+    <div class="auth-container">
+        <div class="auth-box">
+            <h1>Create Account</h1>
+
+            <div id="error-message" class="error-message" style="display: none;"></div>
+            <div id="success-message" class="success-message" style="display: none;"></div>
+
+            <form class="auth-form" method="POST" action="/register.php" onsubmit="return validatePassword()">
+                <input type="text" name="username" placeholder="Username" required>
+                <input type="email" name="email" placeholder="Email" required>
+                <input type="password" id="password" name="password" placeholder="Password" required>
+                <input type="password" id="confirm_password" placeholder="Confirm Password" required>
+                <button type="submit">Register</button>
+            </form>
+
+            <div class="form-footer">
+                <p>Already have an account? <a href="/login.php">Login here</a></p>
+            </div>
         </div>
-    <?php endif; ?>
-    
-    <form class="login-form" action="/register" method="POST">
-        <div class="form-group">
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" 
-                   value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>"
-                   required>
-        </div>
-        
-        <div class="form-group">
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-            <small class="password-requirements">
-                Password must be at least 8 characters long and contain:
-                <ul>
-                    <li>At least one uppercase letter</li>
-                    <li>At least one number</li>
-                </ul>
-            </small>
-        </div>
-        
-        <div class="form-group">
-            <label for="confirm_password">Confirm Password:</label>
-            <input type="password" id="confirm_password" name="confirm_password" required>
-        </div>
-        
-        <button type="submit">Register</button>
-    </form>
-    
-    <div class="login-link">
-        <a href="/login">Already have an account? Login</a>
     </div>
-</div>
-<?php 
-}
-?>
 
+    <script>
+        function validatePassword() {
+            var password = document.getElementById("password").value;
+            var confirmPassword = document.getElementById("confirm_password").value;
+            var errorMessage = document.getElementById("error-message");
 
+            if (password !== confirmPassword) {
+                errorMessage.innerHTML = "Passwords do not match!";
+                errorMessage.style.display = "block";
+                return false;
+            }
+            errorMessage.style.display = "none";
+            return true;
+        }
+    </script>
+
+</body>
+</html>
+
+<?php } ?>
+
+<?php require_once(ROOT_DIR . 'includes/partials/footer.php'); ?>

@@ -1,39 +1,47 @@
 FROM php:8.2-apache
 
 RUN apt-get update && apt-get install -y \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
     libpq-dev \
-    git \
     zip \
     unzip \
-    sendmail \
-    sendmail-bin \
-    mailutils \
-    && docker-php-ext-install pgsql pdo pdo_pgsql \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    vim \
+    ssmtp \
+    ca-certificates \
+    && docker-php-ext-install pgsql pdo pdo_pgsql
+    
+# Configure ssmtp
+RUN echo "root=esusagence@gmail.com\n\
+mailhub=smtp.gmail.com:587\n\
+AuthUser=esusagence@gmail.com\n\
+AuthPass=cahankmunwvjtcqf\n\
+UseTLS=YES\n\
+UseSTARTTLS=YES\n\
+FromLineOverride=YES\n\
+hostname=localhost" > /etc/ssmtp/ssmtp.conf
 
-RUN echo "sendmail_path=/usr/sbin/sendmail -t -i" >> /usr/local/etc/php/conf.d/sendmail.ini
+# Configure revaliases
+RUN echo "root:esusagence@gmail.com:smtp.gmail.com:587\n\
+www-data:esusagence@gmail.com:smtp.gmail.com:587" > /etc/ssmtp/revaliases
 
-# Configure sendmail
-RUN mkdir -p /etc/mail/authinfo && \
-    echo "AuthInfo:smtp.gmail.com \"U:root\" \"I:esusagence@gmail.com\" \"P:nbxrjksvrwsspatq\"" > /etc/mail/authinfo/gmail && \
-    makemap hash /etc/mail/authinfo.db < /etc/mail/authinfo/gmail && \
-    chmod 600 /etc/mail/authinfo/gmail /etc/mail/authinfo.db && \
-    m4 /etc/mail/sendmail.mc > /etc/mail/sendmail.cf
+# Configure PHP to use ssmtp
+RUN echo "sendmail_path=/usr/sbin/ssmtp -t" > /usr/local/etc/php/conf.d/php-sendmail.ini
 
-# Setup Gmail auth
-RUN mkdir -p /etc/mail/authinfo && \
-    echo "AuthInfo:smtp.gmail.com \"U:root\" \"I:esusagence@gmail.com\" \"P:nbxrjksvrwsspatq\"" > /etc/mail/authinfo/gmail && \
-    makemap hash /etc/mail/authinfo.db < /etc/mail/authinfo/gmail && \
-    chmod 600 /etc/mail/authinfo/gmail /etc/mail/authinfo.db && \
-    m4 /etc/mail/sendmail.mc > /etc/mail/sendmail.cf
 
+# Copy application files
+COPY . /var/www/html
+COPY php.ini /usr/local/etc/php/
+
+# Enable necessary PHP extensions
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg
+RUN docker-php-ext-install pdo pdo_mysql gd
+
+# Set permissions
+RUN chown -R www-data:www-data /var/www/html
+
+RUN a2enmod rewrite
+RUN service apache2 restart
+# Set working directory
 WORKDIR /var/www/html
-COPY ./ /var/www/html/
-RUN chown -R www-data:www-data /var/www/html && chmod -R 755 /var/www/html
-RUN a2enmod rewrite headers
-
-EXPOSE 80
-
-# Start sendmail before Apache
-CMD service sendmail start && apache2-foreground

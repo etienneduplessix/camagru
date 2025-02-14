@@ -23,8 +23,7 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      db:
-        condition: service_started
+      - db
     environment:
       ADMINER_DEFAULT_SERVER: db
     networks:
@@ -34,12 +33,15 @@ services:
     build:
       context: ./srcs/php
     container_name: php_web
+    restart: always
     volumes:
       - ./srcs/php/:/var/www/html
     depends_on:
       - db
+    env_file:
+      - .env
     environment:
-     - .env
+      APACHE_DOCUMENT_ROOT: /var/www/html
     ports:
       - "8000:80"
     networks:

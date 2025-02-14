@@ -2,56 +2,60 @@
 define('ROOT_DIR', '');
 require_once(ROOT_DIR.'includes/loader.php');
 require_once(ROOT_DIR.'includes/partials/header.php');
-?>
 
-<?php
+// If already logged in, redirect to index.php
 if (isLoggedIn()) {
-    redirectTo(ROOT_DIR.'.');
+    header("Location: /index.php");
+    exit();
 }
-else {
-  if (isset($_POST['login'])){
-    checkSessionToken($_REQUEST['tokenfield'], $_SESSION['sessiontoken'], '/login.php');
-    $username = htmlspecialchars($_POST['username']);
-    $password = htmlspecialchars($_POST['password']);
-    var_dump($username);
-    var_dump($password);
-    logIn($username,$password);
-  }
-  else {
-    newSessionToken();
-    showLoginForm();
-  }
-}
+
+showLoginForm();
 ?>
 
 <?php
 function showLoginForm(){ ?>
   <div class="login-container">
       <h1>Login</h1>
-      <?php if (isset($_SESSION['error'])): ?>
-          <div class="error-message">
-              <?php 
-               echo htmlspecialchars($_SESSION['error']);
-               unset($_SESSION['error']);
-              ?>
-          </div>
-      <?php endif; ?>
-      <form class="login-form" action="/login" method="POST">
-          <input type="email" name="email" placeholder="Email" required>
-          <input type="password" name="password" placeholder="Password" required>
-          <?php if (isset($_SESSION['sessiontoken'])): ?>
-              <input type="hidden" name="tokenfield" value="<?php echo htmlspecialchars($_SESSION['sessiontoken']); ?>">
-          <?php endif; ?>
-          <button type="submit">Sign In</button>
+      <div id="error-message" class="error-message" style="display: none;"></div>
+
+      <form class="auth-form" id="login-form">
+          <input type="email" name="email" id="email" placeholder="Email" required>
+          <input type="password" name="password" id="password" placeholder="Password" required>
+          <button type="submit" name="login">Sign In</button>
       </form>
+
       <div class="form-footer">
           <div class="forgot-password">
               <a href="#">Forgot password?</a>
           </div>
-            <li><a href="<?php echo ROOT_DIR.'register.php';?>" >register</a></li>
+          <li><a href="<?php echo ROOT_DIR.'register.php';?>">Register</a></li>
       </div>
   </div>
-<?php } ?>
 
+  <script>
+    document.getElementById("login-form").addEventListener("submit", function(event) {
+        event.preventDefault(); // Prevent page reload
+
+        let formData = new FormData(this);
+
+        fetch("/login_api.php", {
+            method: "POST",
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log("✅ Login Successful! Redirecting...");
+                window.location.replace(data.redirect); // Force reload to index.php
+            } else {
+                document.getElementById("error-message").innerHTML = data.error;
+                document.getElementById("error-message").style.display = "block";
+            }
+        })
+        .catch(error => console.error("❌ Error:", error));
+    });
+</script>
+
+<?php } ?>
 
 <?php require_once(ROOT_DIR.'includes/partials/footer.php'); ?>
