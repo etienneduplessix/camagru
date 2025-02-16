@@ -1,8 +1,9 @@
 <?php
 session_start();
+ob_start(); // Start output buffering to prevent header errors
 require_once 'includes/db.php';
 
-$conn = getConnection2();
+$conn = getConnection();
 
 if (isset($_GET['token']) && !empty($_GET['token'])) {
     $token = trim($_GET['token']);
@@ -33,4 +34,4 @@ if (isset($_GET['token']) && !empty($_GET['token'])) {
 $_SESSION['error'] = 'Invalid verification request.';
 header('Location: /login.php');
 exit();
-?>
+ob_end_flush(); // End output buffering

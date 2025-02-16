@@ -2,7 +2,7 @@
 define('ROOT_DIR', '');
 require_once(ROOT_DIR.'includes/loader.php');
 require_once(ROOT_DIR.'includes/partials/header.php');
-
+session_start();
 // If already logged in, redirect to index.php
 if (isLoggedIn()) {
     header("Location: /index.php");
@@ -10,9 +10,7 @@ if (isLoggedIn()) {
 }
 
 showLoginForm();
-?>
 
-<?php
 function showLoginForm(){ ?>
   <div class="login-container">
       <h1>Login</h1>
@@ -28,7 +26,7 @@ function showLoginForm(){ ?>
           <div class="forgot-password">
               <a href="#">Forgot password?</a>
           </div>
-          <li><a href="<?php echo ROOT_DIR.'register.php';?>">Register</a></li>
+          <li><a href="<?php echo ROOT_DIR.'register.php'; ?>">Register</a></li>
       </div>
   </div>
 
@@ -42,7 +40,12 @@ function showLoginForm(){ ?>
             method: "POST",
             body: formData
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => { throw new Error(text); });
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
                 console.log("✅ Login Successful! Redirecting...");
@@ -52,9 +55,13 @@ function showLoginForm(){ ?>
                 document.getElementById("error-message").style.display = "block";
             }
         })
-        .catch(error => console.error("❌ Error:", error));
+        .catch(error => {
+            console.error("❌ Error:", error);
+            document.getElementById("error-message").innerHTML = "An unexpected error occurred.";
+            document.getElementById("error-message").style.display = "block";
+        });
     });
-</script>
+  </script>
 
 <?php } ?>
 

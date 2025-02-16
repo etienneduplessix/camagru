@@ -1,10 +1,11 @@
 <?php
+ob_start(); // Start output buffering to prevent unwanted output
 session_start();
-header('Content-Type: application/json'); // Set response type to JSON
+header('Content-Type: application/json'); // Ensure response is JSON
 require_once 'includes/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405); // Method Not Allowed
+    http_response_code(405);
     echo json_encode(["error" => "Invalid request method."]);
     exit();
 }
@@ -14,25 +15,30 @@ $password = trim($_POST['password'] ?? '');
 
 // Validate input
 if (empty($email) || empty($password)) {
-    http_response_code(400); // Bad Request
+    http_response_code(400);
     echo json_encode(["error" => "Email and password are required."]);
+    exit();
+}
+
+// Validate email format
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    http_response_code(400);
+    echo json_encode(["error" => "Invalid email format."]);
     exit();
 }
 
 $conn = getConnection();
 
-// Check if statement already exists to avoid duplicate `pg_prepare()`
-$queryName = "check_user_query";
-@pg_prepare($conn, $queryName, "SELECT id, password_hash, is_verified FROM users WHERE email = $1");
-
-$result = pg_execute($conn, $queryName, [$email]);
+// Execute query directly with parameters
+$query = "SELECT id, password_hash, is_verified FROM users WHERE email = $1";
+$result = pg_query_params($conn, $query, [$email]);
 
 if ($result && pg_num_rows($result) > 0) {
     $user = pg_fetch_assoc($result);
 
     // If user is not verified, return an error
     if ($user['is_verified'] === 'f') {
-        http_response_code(403); // Forbidden
+        http_response_code(403);
         echo json_encode(["error" => "Please verify your profile before logging in."]);
         pg_close($conn);
         exit();
@@ -40,18 +46,23 @@ if ($result && pg_num_rows($result) > 0) {
 
     // Verify the password
     if (password_verify($password, $user['password_hash'])) {
-        // Secure session handling
         session_regenerate_id(true);
-        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['user'] = [
+            'id' => $user['id'],
+            'email' => $email,
+        ];
 
-        http_response_code(200); // OK
+        http_response_code(200);
+        ob_end_clean(); // Clear buffer before outputting JSON
         echo json_encode(["success" => "Login successful.", "redirect" => "/index.php"]);
     } else {
-        http_response_code(401); // Unauthorized
+        http_response_code(401);
+        ob_end_clean(); // Clear buffer before outputting JSON
         echo json_encode(["error" => "Invalid email or password."]);
     }
 } else {
-    http_response_code(401); // Unauthorized
+    http_response_code(401);
+    ob_end_clean(); // Clear buffer before outputting JSON
     echo json_encode(["error" => "Invalid email or password."]);
 }
 
