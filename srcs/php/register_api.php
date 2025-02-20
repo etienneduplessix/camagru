@@ -1,5 +1,6 @@
 <?php
 require_once('includes/db.php'); // Ensure this file exists
+session_start();
 
 class User {
     private $db;

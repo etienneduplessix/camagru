@@ -1,7 +1,7 @@
 <?php
-ob_start(); // Start output buffering to prevent unwanted output
-session_start();
-header('Content-Type: application/json'); // Ensure response is JSON
+ob_start();
+session_start(); // Start the session to properly set session cookies
+header('Content-Type: application/json');
 require_once 'includes/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -29,7 +29,7 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 
 $conn = getConnection();
 
-// Execute query directly with parameters
+// Use a parameterized query to safely fetch the user
 $query = "SELECT id, password_hash, is_verified FROM users WHERE email = $1";
 $result = pg_query_params($conn, $query, [$email]);
 
@@ -46,23 +46,23 @@ if ($result && pg_num_rows($result) > 0) {
 
     // Verify the password
     if (password_verify($password, $user['password_hash'])) {
-        session_regenerate_id(true);
         $_SESSION['user'] = [
-            'id' => $user['id'],
+            'id'    => $user['id'],
             'email' => $email,
         ];
+        session_write_close(); // Ensure session data is saved
 
         http_response_code(200);
         ob_end_clean(); // Clear buffer before outputting JSON
         echo json_encode(["success" => "Login successful.", "redirect" => "/index.php"]);
     } else {
         http_response_code(401);
-        ob_end_clean(); // Clear buffer before outputting JSON
+        ob_end_clean();
         echo json_encode(["error" => "Invalid email or password."]);
     }
 } else {
     http_response_code(401);
-    ob_end_clean(); // Clear buffer before outputting JSON
+    ob_end_clean();
     echo json_encode(["error" => "Invalid email or password."]);
 }
 

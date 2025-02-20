@@ -18,3 +18,13 @@ CREATE TABLE images (
     image_data BYTEA NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+
+CREATE TABLE likes (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    image_id INT NOT NULL REFERENCES images(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_user_like UNIQUE (user_id, image_id)
+);
+

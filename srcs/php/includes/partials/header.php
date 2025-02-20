@@ -1,68 +1,118 @@
 <?php
 function activeTab($requestUri) {
-    // Get the current URI and remove query strings if present
     $current_uri = strtok($_SERVER['REQUEST_URI'], '?');
     $current_file_name = basename($current_uri, '.php');
-    
-    // Sanitize inputs and use strict comparison
-    return ($current_file_name === $requestUri) ? 'class="active"' : '';
+    return ($current_file_name === $requestUri) ? 'active' : '';
 }
 ?>
 
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>YOUR WEBSITE</title>
+    <meta charset="UTF-8">
+    <title>YOUR WEBSITE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <link rel="icon" href="<?php echo ROOT_DIR.'assets/img/favicon.ico'?>" type="image/x-icon" />
-  <!-- Bootstrap CSS -->
-  <link rel="stylesheet" href="<?php echo ROOT_DIR.'assets/css/bootstrap.min.css'?>">
-  <link rel="stylesheet" href="<?php echo ROOT_DIR.'assets/css/font-awesome.css'?>">
-  <link rel="stylesheet" href="<?php echo ROOT_DIR.'assets/css/bootstrap-theme.min.css'?>">
-  <!-- Bootstrap JS -->
-  <script src="<?php echo ROOT_DIR.'assets/js/functions.js'?>"></script>
-  <script src="<?php echo ROOT_DIR.'assets/js/jquery.min.js'?>"></script>
-  <script src="<?php echo ROOT_DIR.'assets/js/bootstrap.js'?>" crossorigin="anonymous"></script>
-  <!-- Local CSS -->
-  <link rel="stylesheet" href="<?php echo ROOT_DIR.'assets/css/style.css'?>">
-  <link rel="stylesheet" href="<?php echo ROOT_DIR.'assets/css/styl.css'?>">
-  <!-- Local JS -->
-  <script>
-    $('.dropdown-toggle').dropdown()
-  </script>
-
+    <!-- Local CSS -->
+    <link rel="stylesheet" href="<?php echo ROOT_DIR; ?>assets/css/style.css">
 </head>
 
 <body>
-  <nav class="navbar navbar-default navbar-fixed-top">
-    <div class="container">
-      <!-- Brand and toggle get grouped for better mobile display -->
-      <div class="navbar-header">
-        <a href="<?php echo ROOT_DIR.'.' ?>"><img alt="Brand" class="navbar-brand" src="<?php echo ROOT_DIR.'assets/img/logo.png' ?>" style="padding-top:8px; padding-bottom:8px;"></a>
-        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-          <span class="sr-only">Toggle navigation</span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-      </div>
 
-      <!-- Collect the nav links, forms, and other content for toggling -->
+    <nav class="navbar">
+        <div class="container">
+            <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+            <ul class="nav-links" id="nav-links">
+                <li class="<?php echo activeTab(""); ?>"><a href="<?php echo ROOT_DIR; ?>">Home</a></li>
+                <li class="<?php echo activeTab("pics"); ?>"><a href="<?php echo ROOT_DIR; ?>pics.php">Pics</a></li>
+                <li><a href="<?php echo ROOT_DIR; ?>logout.php">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
 
-      <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-        <ul class="nav navbar-nav">
-          <li <?php activeTab("")?>><a href="<?php echo ROOT_DIR.'.' ?>">Home<span class="sr-only">(current)</span></a></li>
-          <li <?php activeTab("others")?>><a href="<?php echo ROOT_DIR.'others' ?>">Others</a></li>
-        </ul>
-        <ul class="nav navbar-nav pull-right">
-          <li><a href="<?php echo ROOT_DIR.'logout';?>" >Logout</a></li>
-        </ul>
-      </div>
-    </div>
-  </nav>
+    <script>
+        function toggleMenu() {
+            document.getElementById("nav-links").classList.toggle("active");
+        }
+    </script>
 
-<div class="container">
+    <style>
+        /* General Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
 
-  <div class="row">
-    <div class="col-xs-12">
+        /* Navbar Styling */
+        .navbar {
+            background: #333;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .navbar-brand img {
+            max-height: 40px;
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+        }
+
+        .nav-links li {
+            margin: 0 10px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        .nav-links a:hover,
+        .nav-links .active a {
+            background: #555;
+        }
+
+        /* Mobile Menu Button */
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: white;
+            cursor: pointer;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                width: 100%;
+                position: absolute;
+                top: 50px;
+                left: 0;
+                background: #333;
+                padding: 10px;
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+        }
+    </style>
+
+</body>
+</html>

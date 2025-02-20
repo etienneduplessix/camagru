@@ -1,87 +1,103 @@
 <?php
+declare(strict_types=1);
+
 error_reporting(E_ALL);
 
-# -------------- GLOBALS --------------
-$GLOBALS['errormsg'] = '';
+/**
+ * Class Config
+ *
+ * Handles loading the configuration settings.
+ */
+class Config {
+    private static ?array $config = null;
 
-# -------------- LOAD CONF ------------
-function getConfig(){
-	return parse_ini_file(ROOT_DIR.'conf/config.ini');
-}
-
-# ---------- AUTHENTICATION -----------
-
-function &authLoader() {
-	if( !isset( $_SESSION[ 'puggy' ] ) ) {
-		$_SESSION[ 'puggy' ] = array();
-	}
-	return $_SESSION['puggy'];
-}
-
-function logIn($username, $password) {
-	$puggyConf = getConfig();
-	if ($username == $puggyConf['wi_user'] & $password == $puggyConf['wi_pass']) {
-		$authSession =& authLoader();
-		$authSession['puggy'] = $username;
-		redirectTo(ROOT_DIR.'/');
-	}
-	else {
-		redirectTo('login.php');
-	}
-}
-
-function logOut() {
-	$authSession =& authLoader();
-	unset( $authSession['puggy']);
-}
-
-function isLoggedIn() {
-	$authSession =& authLoader();
-	return isset( $authSession['puggy'] );
+    public static function get(): array {
+        if (self::$config === null) {
+            // Using ROOT_DIR if defined; otherwise, fallback to __DIR__
+            $configPath = (defined('ROOT_DIR') ? ROOT_DIR : __DIR__) . '/conf/config.ini';
+            self::$config = parse_ini_file($configPath);
+        }
+        return self::$config;
+    }
 }
 
 
-function currentUser() {
-	$authSession =& authLoader();
-	return (isset($authSession['puggy']) ? $authSession['puggy'] : '');
+class Auth {
+    private const SESSION_KEY = 'moi';
+    private const TOKEN_KEY = 'sessiontoken';
+
+    /**
+     * Logs out the current user.
+     */
+    public static function logOut(): void {
+        session_unset();
+    }
+
+    /**
+     * Checks whether a user is currently logged in.
+     *
+     * @return bool
+     */
+    public static function isLoggedIn(): bool {
+        return isset($_SESSION[self::SESSION_KEY]);
+    }
+
+    /**
+     * Returns the current logged-in username.
+     *
+     * @return string|null
+     */
+    public static function currentUser(): ?string {
+        return $_SESSION[self::SESSION_KEY] ?? null;
+    }
+
+    /**
+     * Redirects to a given URL and exits.
+     *
+     * @param string $href
+     */
+    private static function redirectTo(string $href): void {
+        header("Location: {$href}");
+        exit;
+    }
 }
 
-# ----------- TOKEN SESSION -----------
+/**
+ * Class Utils
+ *
+ * Provides utility methods.
+ */
+class Utils {
+    /**
+     * Returns the current page (script) name.
+     *
+     * @return string
+     */
+    public static function currentPage(): string {
+        return $_SERVER['PHP_SELF'];
+    }
 
+    /**
+     * Sets an error message in the session and redirects to an error page.
+     *
+     * @param string $errorMessage
+     */
+    public static function redirectError(string $errorMessage): void {
+        $_SESSION['err'] = [
+            'date'    => date("Y-m-d H:i:s"),
+            'message' => $errorMessage
+        ];
+        self::redirectTo('error.php');
+    }
 
-function newSessionToken(){
-	if(isset( $_SESSION['sessiontoken'])){
-		destroySessionToken();
-	}
-	$_SESSION['sessiontoken'] = md5( uniqid() );
+    /**
+     * Redirects to a given URL and exits.
+     *
+     * @param string $href
+     */
+    private static function redirectTo(string $href): void {
+        header("Location: {$href}");
+        exit;
+    }
 }
-
-function destroySessionToken(){
-	unset( $_SESSION['sessiontoken']);
-}
-
-function checkSessionToken($field_token, $session_token, $redirectUrl){
-	if(!isset($field_token) && !isset($session_token) && $field_token !== $session_token){
-		redirectTo(ROOT_DIR.$redirectUrl);
-	}
-}
-
-
-
-# -------------- UTILS --------------
-
-function currentPage() {
-	return $_SERVER["PHP_SELF"];
-}
-
-function redirectTo($href){
-		header( "Location: {$href}" );
-	  exit;
-}
-
-function redirectError($errid){
-	$_SESSION['err'] = array('date' => date("Y-m-d H:i:s"), 'message' => $errid);
-	redirectTo('error.php');
-}
-
 ?>

@@ -5,7 +5,9 @@ require_once(ROOT_DIR.'includes/partials/header.php');
 ?>
 
 <?php
-  if (isLoggedIn()) {
+$currentPage = Utils::currentPage();
+
+  if (Auth::isLoggedIn()) {
     logOut();
     redirectTo(ROOT_DIR.'index.php');
   }

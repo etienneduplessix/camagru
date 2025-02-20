@@ -2,37 +2,45 @@
 session_start();
 header('Content-Type: application/json');
 
-require_once('db.php');
+require_once 'includes/db.php';
+require_once 'modif_img.php';
 
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['user']['id'])) {
     echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
     exit();
 }
 
-$user_id = $_SESSION['user_id'];
-$data = json_decode(file_get_contents("php://input"), true);
+$user_id = $_SESSION['user']['id'];
+$raw_data = file_get_contents("php://input");
+error_log($raw_data);
 
-if (!$data || !isset($data['image'])) {
+$data = json_decode($raw_data, true);
+if (!$data) {
+    error_log("Error decoding JSON");
+} else {
+    error_log(print_r($data, true));
+}
+
+if (!$data || !isset($data['image']) || !isset($data['overlay_type'])) {
     echo json_encode(['status' => 'error', 'message' => 'Missing required parameters']);
     exit();
 }
 
-// Decode Base64 PNG
-$image_data = base64_decode($data['image']);
-if ($image_data === false) {
-    echo json_encode(['status' => 'error', 'message' => 'Invalid image data']);
-    exit();
-}
-
 try {
-    $pdo = getConnection();
-
-    // Use PostgreSQL-specific bytea escaping
-    $image_binary = pg_escape_bytea($image_data);
+    $pdo = getConnection2();
+    
+    $image_base64 = $data['image'];
+    $overlay_type = $data['overlay_type'];
+    
+    $modified_image = overlayPngOnBase64($image_base64, $overlay_type);
+    
+    if (strpos($modified_image, 'data:image') === 0) {
+        $modified_image = substr($modified_image, strpos($modified_image, ',') + 1);
+    }
 
     $stmt = $pdo->prepare("INSERT INTO images (user_id, image_data, created_at) VALUES (:user_id, :image_data, NOW())");
     $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
-    $stmt->bindParam(':image_data', $image_binary, PDO::PARAM_LOB);
+    $stmt->bindParam(':image_data', $modified_image, PDO::PARAM_STR);
 
     if ($stmt->execute()) {
         echo json_encode(['status' => 'success', 'message' => 'Image uploaded successfully']);
