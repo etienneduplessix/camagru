@@ -1,10 +1,8 @@
 <?php
 session_start();
 
-define('ROOT_DIR', '');
-require_once(ROOT_DIR . 'includes/loader.php');
-require_once(ROOT_DIR . 'includes/db.php');
-require_once(ROOT_DIR . 'includes/partials/header.php');
+require_once('includes/loader.php');
+require_once('includes/db.php');
 
 error_log("🔍 Entered register.php");
 
@@ -81,13 +79,21 @@ function showRegistrationForm() { ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - Camagru</title>
-    <link rel="stylesheet" href="styl.css">
+  <meta charset="UTF-8">
+  <title>My Website - Home</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script src="script.js" defer></script> <!-- Fixed filename and added 'defer' -->
+<header>
+    <div class="logo">My Website</div>
+    <nav>
+    <a href="index.php">Home</a>
+    <a href="usrman.php">User Management</a>
+    <a href="galerie.php">galerie</a>
+    <a href="logout.php">Logout</a> 
+    </nav>
+</header>
 </head>
 <body>
-
     <div class="auth-container">
         <div class="auth-box">
             <h1>Create Account</h1>
@@ -124,10 +130,10 @@ function showRegistrationForm() { ?>
             return true;
         }
     </script>
-
+<footer>
+    &copy; 2025 My Websit
+  </footer>
 </body>
 </html>
 
 <?php } ?>
-
-<?php require_once(ROOT_DIR . 'includes/partials/footer.php'); ?>

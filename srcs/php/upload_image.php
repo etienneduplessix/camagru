@@ -21,7 +21,7 @@ if (!$data) {
     error_log(print_r($data, true));
 }
 
-if (!$data || !isset($data['image']) || !isset($data['overlay_type'])) {
+if (!$data || !isset($data['image']) || !isset($data['effect'])) {
     echo json_encode(['status' => 'error', 'message' => 'Missing required parameters']);
     exit();
 }
@@ -30,9 +30,9 @@ try {
     $pdo = getConnection2();
     
     $image_base64 = $data['image'];
-    $overlay_type = $data['overlay_type'];
+    $effect = $data['effect'];
     
-    $modified_image = overlayPngOnBase64($image_base64, $overlay_type);
+    $modified_image = overlayPngOnBase64($image_base64, $effect);
     
     if (strpos($modified_image, 'data:image') === 0) {
         $modified_image = substr($modified_image, strpos($modified_image, ',') + 1);

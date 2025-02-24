@@ -11,7 +11,7 @@ if (!isset($_SESSION['user']['id'])) {
   <meta charset="UTF-8">
   <title>My Website - Home</title>
   <link rel="stylesheet" href="assets/css/style.css">
-  <script src="scipt.js"></script>
+  <script src="srcipt.js"></script>
 </head>
 <body>
   <header>

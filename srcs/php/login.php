@@ -15,9 +15,25 @@ if (Auth::isLoggedIn()) {
     exit();
 }
 
-require_once('includes/partials/header.php');
 ?>
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Website - Home</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script src="script.js" defer></script> 
+<header>
+    <div class="logo">My Website</div>
+    <nav>
+    <a href="index.php">Home</a>
+    <a href="usrman.php">User Management</a>
+    <a href="galerie.php">galerie</a>
+    <a href="logout.php">Logout</a> 
+    </nav>
+</header>
+</head>
+<body>
 <div class="login-container">
     <h1>Login</h1>
     <div id="error-message" class="error-message" style="display: none;"></div>
@@ -30,10 +46,8 @@ require_once('includes/partials/header.php');
     </form>
 
     <div class="form-footer">
-        <div class="forgot-password">
-            <a href="#">Forgot password?</a>
-        </div>
-        <li><a href="<?php echo ROOT_DIR . 'register.php'; ?>">Register</a></li>
+        <li><a href="<?php echo'register.php'; ?>">Register</a></li>
+        <li><a href="<?php echo'rebootpass.php'; ?>">forgoten password</a></li>
     </div>
 </div>
 
@@ -68,6 +82,10 @@ document.getElementById("login-form").addEventListener("submit", function(event)
         document.getElementById("error-message").style.display = "block";
     });
 });
-</script>
 
-<?php require_once('includes/partials/footer.php'); ?>
+</script>
+<footer>
+    &copy; 2025 My Websit
+  </footer>
+</body>
+</html>

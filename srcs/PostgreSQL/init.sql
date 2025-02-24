@@ -8,7 +8,9 @@ CREATE TABLE users (
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT unique_email UNIQUE (email),
-    CONSTRAINT unique_username UNIQUE (username)
+    CONSTRAINT unique_username UNIQUE (username),
+    ALTER TABLE users ADD COLUMN password_reset_token TEXT,
+    ALTER TABLE users ADD COLUMN token_expiry TIMESTAMP
 );
 
 
@@ -28,3 +30,10 @@ CREATE TABLE likes (
     CONSTRAINT unique_user_like UNIQUE (user_id, image_id)
 );
 
+CREATE TABLE comments (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    image_id INT NOT NULL REFERENCES images(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    comment_text TEXT NOT NULL
+);

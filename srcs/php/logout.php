@@ -1,7 +1,6 @@
 <?php
-define('ROOT_DIR', '');
-require_once(ROOT_DIR.'includes/loader.php');
-require_once(ROOT_DIR.'includes/partials/header.php');
+session_abort();
+
 ?>
 
 <?php
@@ -15,7 +14,3 @@ $currentPage = Utils::currentPage();
       redirectTo(ROOT_DIR.'index.php');
   }
 ?>
-
-
-
-<?php require_once(ROOT_DIR.'includes/partials/footer.php'); ?>
