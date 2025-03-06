@@ -17,6 +17,8 @@ error_log($raw_data);
 $data = json_decode($raw_data, true);
 if (!$data) {
     error_log("Error decoding JSON");
+    echo json_encode(['status' => 'error', 'message' => 'Invalid JSON data']);
+    exit();
 } else {
     error_log(print_r($data, true));
 }
@@ -32,7 +34,12 @@ try {
     $image_base64 = $data['image'];
     $effect = $data['effect'];
     
-    $modified_image = overlayPngOnBase64($image_base64, $effect);
+    try {
+        $modified_image = overlayPngOnBase64($image_base64, $effect);
+    } catch (Exception $e) {
+        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        exit();
+    }
     
     if (strpos($modified_image, 'data:image') === 0) {
         $modified_image = substr($modified_image, strpos($modified_image, ',') + 1);

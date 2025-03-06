@@ -10,28 +10,22 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
-$email = trim($_POST['email'] ?? '');
+$username = trim($_POST['username'] ?? '');
 $password = trim($_POST['password'] ?? '');
 
 // Validate input
-if (empty($email) || empty($password)) {
+if (empty($username) || empty($password)) {
     http_response_code(400);
-    echo json_encode(["error" => "Email and password are required."]);
+    echo json_encode(["error" => "Username and password are required."]);
     exit();
 }
 
-// Validate email format
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    http_response_code(400);
-    echo json_encode(["error" => "Invalid email format."]);
-    exit();
-}
 
 $conn = getConnection();
 
 // Use a parameterized query to safely fetch the user
-$query = "SELECT id, password_hash, is_verified FROM users WHERE email = $1";
-$result = pg_query_params($conn, $query, [$email]);
+$query = "SELECT id, password_hash, is_verified FROM users WHERE username = $1";
+$result = pg_query_params($conn, $query, [$username]);
 
 if ($result && pg_num_rows($result) > 0) {
     $user = pg_fetch_assoc($result);
@@ -48,7 +42,7 @@ if ($result && pg_num_rows($result) > 0) {
     if (password_verify($password, $user['password_hash'])) {
         $_SESSION['user'] = [
             'id'    => $user['id'],
-            'email' => $email,
+            'username' => $username,
         ];
         session_write_close(); // Ensure session data is saved
 
@@ -58,12 +52,12 @@ if ($result && pg_num_rows($result) > 0) {
     } else {
         http_response_code(401);
         ob_end_clean();
-        echo json_encode(["error" => "Invalid email or password."]);
+        echo json_encode(["error" => "Invalid username or password."]);
     }
 } else {
     http_response_code(401);
     ob_end_clean();
-    echo json_encode(["error" => "Invalid email or password."]);
+    echo json_encode(["error" => "Invalid username or password."]);
 }
 
 pg_close($conn);

@@ -6,18 +6,18 @@ function overlayPngOnBase64($backgroundBase64, $overlayType) {
     // Build the path for the overlay image
     $overlayPath = __DIR__ . "/png/" . $overlayType . ".png";
     if (!file_exists($overlayPath)) {
-        return json_encode(['error' => 'Overlay image not found.']);
+        throw new Exception('Overlay image not found.');
     }
     
     // Create image resources from the background and overlay
     $background = imagecreatefromstring($backgroundData);
     if (!$background) {
-        return json_encode(['error' => 'Invalid background image data.']);
+        throw new Exception('Invalid background image data.');
     }
     
     $overlay = imagecreatefrompng($overlayPath);
     if (!$overlay) {
-        return json_encode(['error' => 'Invalid overlay image data.']);
+        throw new Exception('Invalid overlay image data.');
     }
     
     // Get dimensions

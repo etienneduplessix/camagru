@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Existing element selections
     const startCameraBtn = document.getElementById('startCamera');
     const fileInput = document.getElementById('fileInput');
+    const uploadLabel = fileInput.parentElement;
     const sendToDBBtn = document.getElementById('sendToDB');
     const effectButtons = document.querySelectorAll('.button-group .btn-success');
     const video = document.getElementById('video');
@@ -11,6 +12,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const buttons = document.querySelectorAll(".btn-success");
     let stream = null;
     let overlay = '';
+
+    // Initially disable file upload
+    uploadLabel.style.opacity = '0.5';
+    uploadLabel.style.cursor = 'not-allowed';
+    fileInput.disabled = true;
 
     // Start camera and create capture button if needed
     startCameraBtn.addEventListener('click', async () => {
@@ -35,17 +41,35 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Effect buttons event listeners
+    // Consolidated effect buttons event listener
     effectButtons.forEach(button => {
         button.addEventListener("click", () => {
+            // Remove selected class from all buttons
             effectButtons.forEach(btn => btn.classList.remove("selected"));
+            
+            // Add selected class to clicked button
             button.classList.add("selected");
+            
+            // Set the overlay based on selected filter
+            if (button.id === 'cat') {
+                overlay = 'cat';
+            } else if (button.id === 'sun') {
+                overlay = 'sun';
+            } else if (button.id === 'flower') {
+                overlay = 'flower';
+            }
 
+            // Enable both capture button and file upload
             const captureBtn = document.querySelector('.capture-btn');
             if (captureBtn) {
                 captureBtn.disabled = false;
                 captureBtn.style.opacity = 1;
             }
+            
+            // Enable file upload
+            uploadLabel.style.opacity = '1';
+            uploadLabel.style.cursor = 'pointer';
+            fileInput.disabled = false;
         });
     });
 
@@ -67,15 +91,6 @@ document.addEventListener("DOMContentLoaded", () => {
         preview.src = imageData;
         preview.style.display = 'block';
 
-        // Use the selected button to map the overlay image
-        if (selectedButton.id === 'cat') {
-            overlay = 'cat';
-        } else if (selectedButton.id === 'sun') {
-            overlay = 'sun';
-        } else if (selectedButton.id === 'flower') {
-            overlay = 'flower';
-        }
-
         // Stop the camera stream and hide video element
         if (stream) {
             stream.getTracks().forEach(track => track.stop());
@@ -89,10 +104,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function loadSidebar() {
-        fetch('/pics.php', { cache: "no-store" })
+        fetch('/pics2.php', { cache: "no-store" })
             .then(response => response.text())
             .then(data => {
                 sidebarContainer.innerHTML = data;
+                sidebarContainer.style.display = 'block';
+                sidebarContainer.style.backgroundColor = '#fff';
+                sidebarContainer.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
+                sidebarContainer.style.padding = '20px';
+                sidebarContainer.style.borderRadius = '8px';
             })
             .catch(error => console.error('Error loading sidebar:', error));
     }
@@ -120,29 +140,7 @@ document.addEventListener("DOMContentLoaded", () => {
                       img.style.width = "100%";
                       img.style.display = "block";
 
-                      const likeBtn = document.createElement('button');
-                      likeBtn.className = 'like-button';
-                      likeBtn.innerText = '❤️';
-                      likeBtn.style.position = "absolute";
-                      likeBtn.style.top = "8px";
-                      likeBtn.style.left = "8px";
-                      likeBtn.style.backgroundColor = "rgba(200,200,200,0.8)";
-                      likeBtn.style.border = "none";
-                      likeBtn.style.borderRadius = "50%";
-                      likeBtn.style.padding = "8px";
-                      likeBtn.style.cursor = "pointer";
-                      likeBtn.setAttribute("data-image-id", imageData.id);
-
-                      if (localStorage.getItem(`liked_${imageData.id}`) === "true") {
-                          likeBtn.style.backgroundColor = "red";
-                      }
-
-                      likeBtn.addEventListener('click', () => {
-                          likeImage(imageData.id, likeBtn);
-                      });
-
                       wrapper.appendChild(img);
-                      wrapper.appendChild(likeBtn);
                       container.appendChild(wrapper);
                   });
               } else {
@@ -155,26 +153,6 @@ document.addEventListener("DOMContentLoaded", () => {
           });
     }
 
-    function likeImage(imageId, button) {
-        fetch('/likes_api.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ image_id: imageId })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                console.log("Like saved:", data.success);
-                button.style.backgroundColor = "red";
-                localStorage.setItem(`liked_${imageId}`, "true");
-            } else {
-                console.error("Like failed:", data.error);
-            }
-        })
-        .catch(error => console.error('Error liking image:', error));
-    }
-
     // Additional event listener for any button clicks to toggle "selected" state
     buttons.forEach(button => {
         button.addEventListener("click", () => {
@@ -185,20 +163,50 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // File upload handler
     fileInput.addEventListener('change', (event) => {
+        const selectedButton = document.querySelector('.button-group .selected');
+        if (overlay === '') {
+            alert('Please select a filter first!');
+            event.target.value = ''; // Clear the file input
+            return;
+        }
+
         const file = event.target.files[0];
         if (!file) return;
 
         const reader = new FileReader();
         reader.onload = function (e) {
+            // First display the original image
             preview.src = e.target.result;
             preview.style.display = 'block';
             video.style.display = 'none';
+
+            // Then apply the overlay
+            const img = new Image();
+            img.onload = function() {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+
+                const overlayImg = new Image();
+                overlayImg.onload = function() {
+                    ctx.drawImage(overlayImg, 0, 0, canvas.width, canvas.height);
+                    preview.src = canvas.toDataURL('image/png');
+                };
+            };
+            img.src = e.target.result;
         };
         reader.readAsDataURL(file);
     });
 
     // Image upload button event listener
     sendToDBBtn.addEventListener('click', () => {
+        const selectedButton = document.querySelector('.button-group .selected');
+        if (overlay === '') {
+            alert("Please select a filter before sending to database.");
+            return;
+        }
+
         const imageData = preview.src;
         if (!imageData || !imageData.startsWith('data:image')) {
             alert("No valid image found. Capture or upload an image first.");
@@ -207,14 +215,17 @@ document.addEventListener("DOMContentLoaded", () => {
         sendImageToServer(imageData);
     });
 
-    // Updated sendImageToServer: define selectedButton before using it
+    // Updated sendImageToServer function
     function sendImageToServer(imageData) {
         const selectedButton = document.querySelector('.button-group .selected');
+        if (overlay === '') {
+            alert("Please select a filter before sending to database.");
+            return;
+        }
 
-        let effect = overlay;
         const payload = {
             image: imageData,
-            effect: effect
+            effect: overlay
         };
     
         fetch('/upload_image.php', {
@@ -226,15 +237,51 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(response => response.json())
         .then(data => {
             console.log("Upload response:", data);
+            if (data.error) {
+                throw new Error(data.error);
+            }
             alert(data.message);
             loadImages();
         })
         .catch(error => {
-            console.error('Error uploading image:', error);
+            console.log('Error uploading image:', error);
             alert('Failed to upload image. Please try again.');
         });
     }
 
     loadSidebar();
     loadImages();
+
+    // User Management Form Validation
+    document.addEventListener('DOMContentLoaded', function() {
+        const profileForm = document.getElementById('profile-form');
+        if (profileForm) {
+            profileForm.addEventListener('submit', function(e) {
+                const newPassword = document.getElementById('new_password').value;
+                const confirmPassword = document.getElementById('confirm_password').value;
+                
+                // If new password is provided, validate it
+                if (newPassword) {
+                    if (newPassword.length < 8) {
+                        e.preventDefault();
+                        alert('New password must be at least 8 characters long');
+                        return;
+                    }
+                    
+                    if (newPassword !== confirmPassword) {
+                        e.preventDefault();
+                        alert('New passwords do not match');
+                        return;
+                    }
+                }
+                
+                // If new password is provided, confirm password is required
+                if (newPassword && !confirmPassword) {
+                    e.preventDefault();
+                    alert('Please confirm your new password');
+                    return;
+                }
+            });
+        }
+    });
 });

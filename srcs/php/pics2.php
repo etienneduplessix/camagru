@@ -10,6 +10,7 @@
       margin: 0;
       font-family: Arial, sans-serif;
       background-color: #f5f5f5;
+      overflow-x: hidden; /* Prevent horizontal scroll */
     }
 
     /* Gallery container using CSS Grid */
@@ -43,28 +44,9 @@
     .wrapper img:hover {
       transform: scale(1.03);
     }
-
-    /* Like button styling */
-    .like-button {
-      position: absolute;
-      top: 100px;
-      left: 100px;
-      background-color: rgba(255, 255, 255, 0.8);
-      border: none;
-      border-radius: 50%;
-      padding: 8px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-
-    /* Styling for the liked state */
-    .like-button.liked {
-      background-color: red;
-      color: white;
-    }
   </style>
 </head>
-<script src="srcip2.js"></script>
+<script src="script.js"></script>
 <body>
   <div id="imageContainer">
     <!-- Gallery images will be loaded here -->

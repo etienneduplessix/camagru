@@ -7,10 +7,10 @@ CREATE TABLE users (
     is_verified BOOLEAN DEFAULT FALSE,
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    password_reset_token TEXT,
+    token_expiry TIMESTAMP,
     CONSTRAINT unique_email UNIQUE (email),
-    CONSTRAINT unique_username UNIQUE (username),
-    ALTER TABLE users ADD COLUMN password_reset_token TEXT,
-    ALTER TABLE users ADD COLUMN token_expiry TIMESTAMP
+    CONSTRAINT unique_username UNIQUE (username)
 );
 
 

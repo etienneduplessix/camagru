@@ -81,14 +81,14 @@ function showRegistrationForm() { ?>
 <head>
   <meta charset="UTF-8">
   <title>My Website - Home</title>
-  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="includes/css/style.css">
   <script src="script.js" defer></script> <!-- Fixed filename and added 'defer' -->
 <header>
     <div class="logo">My Website</div>
     <nav>
     <a href="index.php">Home</a>
-    <a href="usrman.php">User Management</a>
-    <a href="galerie.php">galerie</a>
+    <a href="user_management.php">User Management</a>
+    <a href="galerie.php">Galerie</a>
     <a href="logout.php">Logout</a> 
     </nav>
 </header>

@@ -1,3 +1,6 @@
+
+
+
 <?php
 require_once('includes/loader.php');
 
@@ -21,7 +24,7 @@ if (Auth::isLoggedIn()) {
 <head>
   <meta charset="UTF-8">
   <title>My Website - Home</title>
-  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="includes/css/style.css">
   <script src="script.js" defer></script> 
 <header>
     <div class="logo">My Website</div>
@@ -38,9 +41,10 @@ if (Auth::isLoggedIn()) {
     <h1>Login</h1>
     <div id="error-message" class="error-message" style="display: none;"></div>
 
+
     <form class="auth-form" id="login-form">
         <input type="hidden" name="token" value="<?php echo htmlspecialchars($token); ?>">
-        <input type="email" name="email" id="email" placeholder="Email" required>
+        <input type="username" name="username" id="username" placeholder="Username" required>
         <input type="password" name="password" id="password" placeholder="Password" required>
         <button type="submit" name="login">Sign In</button>
     </form>
