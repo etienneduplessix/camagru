@@ -68,12 +68,10 @@ if (!isset($_SESSION['user']['id'])) {
                         <input type="password" id="confirm_password" name="confirm_password">
                     </div>
                     <button type="submit" class="submit-btn">Update Profile</button>
+                    <button type="submit" class="submit-btn">Update Profile</button>
                 </form>
             </div>
         </main>
-        <aside class="sidebar" id="sidebar-container">
-            <!-- Sidebar content goes here -->
-        </aside>
     </div>
     <footer>
         &copy; 2025 My Website

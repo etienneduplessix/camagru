@@ -1,8 +1,12 @@
 <?php
+// Handle preflight OPTIONS request
+if ($_SERVER['REQUEST_METHOD'] == "OPTIONS") {
+    http_response_code(200);
+    exit();
+}
+
 require_once 'includes/db.php'; // Ensure this file contains your database connection setup
 session_start();
-
-header('Content-Type: application/json');
 
 if (!isset($_SESSION['user']['id'])) {
     echo json_encode(['error' => 'Unauthorized. Please log in.']);

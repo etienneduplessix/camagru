@@ -15,7 +15,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - network
-  
+
   adminer:
     image: adminer
     container_name: adminer
