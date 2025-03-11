@@ -3,7 +3,7 @@ FROM nginx:latest
 ARG 127.0.0.1
 
 RUN apt-get -y update
-RUN apt-get -y install nginx openssl sed
+RUN apt-get -y install nginx openssl 
 
 RUN mkdir -p /cert
 RUN openssl req -x509 -nodes \

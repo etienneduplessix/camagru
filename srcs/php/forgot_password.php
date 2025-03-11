@@ -43,13 +43,15 @@ try {
         echo json_encode(["error" => "Database error: Unable to store reset token."]);
         exit();
     }
-        if ($insertResult) {
-            sendResetEmail($email, $token);
-        } else {
-            // Log the error but don't expose it to the user
-            error_log("Failed to insert token: " . pg_last_error($conn));
-        }
-    }
+
+    sendResetEmail($email, $token);
+
+} catch (Exception $e) {
+    error_log("❌ Exception caught: " . $e->getMessage());
+    echo json_encode(["error" => "An unexpected error occurred. Please try again later."]);
+    exit();
+}
+
 
     /**
      * Send a password reset email
@@ -60,7 +62,7 @@ try {
      */
     function sendResetEmail($email, $token) {
         // Use HTTPS in production
-        $resetLink = "https://" . $_SERVER['HTTP_HOST'] . "/rebootpass.php?token=" . urlencode($token);
+        $resetLink = "http://localhost:8000/rebootpass2.php?token=" . urlencode($token);
         
         $message = "
         <!DOCTYPE html>
@@ -89,4 +91,3 @@ try {
     }
 
     exit();
-</php>

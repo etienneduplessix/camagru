@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     error_log("❌ Redirecting to /rebootpass.php due to errors.");
-    header('Location: /rebootpass.php');
+    header('Location: login.php');
     exit;
 }
 
