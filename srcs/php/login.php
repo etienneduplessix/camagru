@@ -25,12 +25,12 @@ if (Auth::isLoggedIn()) {
   <meta charset="UTF-8">
   <title>My Website - Home</title>
   <link rel="stylesheet" href="includes/css/style.css">
-  <script src="script.js" defer></script> 
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <header>
     <div class="logo">My Website</div>
     <nav>
     <a href="index.php">Home</a>
-    <a href="usrman.php">User Management</a>
+    <a href="user_management.php">User Management</a>
     <a href="galerie.php">galerie</a>
     <a href="logout.php">Logout</a> 
     </nav>

@@ -1,33 +1,38 @@
 <?php
-session_start(); // Start the session
+// Start the session if not already started
+session_start();
 
+// Include necessary files
 require_once('includes/loader.php');
 
-if (Auth::isLoggedIn()) {
-    // Clear session variables
-    $_SESSION = [];
+// Log the logout attempt (helpful for debugging)
+error_log("Logout attempt initiated. User status: " . (Auth::isLoggedIn() ? "Logged in" : "Not logged in"));
 
-    // Destroy session on the server
-    session_destroy();
+// Always perform logout actions regardless of login status
+// Clear session variables
+$_SESSION = array();
 
-    // Clear the session cookie
-    if (ini_get("session.use_cookies")) {
-        $params = session_get_cookie_params();
-        setcookie(session_name(), '', time() - 42000,
-            $params["path"], $params["domain"],
-            $params["secure"], $params["httponly"]
-        );
-    }
+// Destroy the session
+session_destroy();
 
-    // Clear any authentication cookies (if used)
-    setcookie("auth_token", "", time() - 3600, "/"); // Adjust cookie name as needed
-
-    // Redirect to homepage
-    header("Location: /index.php");
-    exit();
-} else {
-    // Redirect to homepage if not logged in
-    header("Location: /index.php");
-    exit();
+// Clear the session cookie
+if (ini_get("session.use_cookies")) {
+    $params = session_get_cookie_params();
+    setcookie(
+        session_name(),
+        '',
+        time() - 42000,
+        $params["path"],
+        $params["domain"],
+        $params["secure"],
+        $params["httponly"]
+    );
 }
+
+// Clear any authentication cookies (if used)
+setcookie("auth_token", "", time() - 3600, "/"); 
+
+// Make sure there's no whitespace or output before this point
+header("Location: /index.php");
+exit();
 ?>

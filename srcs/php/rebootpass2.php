@@ -1,8 +1,8 @@
 <?php
-// Start session (if needed)
+// Start session
 session_start();
 
-// Check if token exists in the URL (for password reset)
+// Check if token exists in URL
 if (!isset($_GET['token'])) {
     die("Invalid request. Token is missing.");
 }
@@ -21,11 +21,11 @@ $token = htmlspecialchars($_GET['token'], ENT_QUOTES, 'UTF-8');
             const errorMessage = document.getElementById("error-message");
 
             form.addEventListener("submit", async function (event) {
-                event.preventDefault(); // Prevent default form submission
+                event.preventDefault();
 
                 const newPassword = document.getElementById("newpassword").value;
                 const confirmPassword = document.getElementById("newpasswordconf").value;
-                const token = "<?php echo $token; ?>"; // Inject PHP token into JavaScript
+                const token = <?php echo json_encode($token); ?>; // JSON-safe token
 
                 if (newPassword !== confirmPassword) {
                     errorMessage.textContent = "Passwords do not match!";
@@ -33,32 +33,16 @@ $token = htmlspecialchars($_GET['token'], ENT_QUOTES, 'UTF-8');
                     return;
                 }
 
-                try {
-                    const response = await fetch("reboot_pass_api.php", {
+                const response = await fetch("reboot_pass_api.php", {
                         method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                            token: token,
-                            newpassword: newPassword
-                        })
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ token: token, newpassword: newPassword })
                     });
 
                     const data = await response.json();
+                    console.log("Server response:", data); // Debugging
+                    window.location.href = "index.php"; // Redirect to login page
 
-                    if (data.success) {
-                        alert("Password reset successfully!");
-                        window.location.href = "login.php"; // Redirect to login page
-                    } else {
-                        errorMessage.textContent = data.error || "An error occurred.";
-                        errorMessage.style.display = "block";
-                    }
-                } catch (error) {
-                    console.error("Error:", error);
-                    errorMessage.textContent = "Failed to connect to the server.";
-                    errorMessage.style.display = "block";
-                }
             });
         });
     </script>

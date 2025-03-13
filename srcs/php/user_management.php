@@ -12,6 +12,7 @@ if (!isset($_SESSION['user']['id'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Website - Home</title>
     <link rel="stylesheet" href="includes/css/index_style.css">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <script src="script.js" defer></script>
 </head>
 <body>

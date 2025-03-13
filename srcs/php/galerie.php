@@ -6,7 +6,6 @@ ob_start();
 <head>
   <meta charset="UTF-8">
   <title>My Website - Home</title>
-  <link rel="stylesheet" href="assets/css/style.css">
   <link rel="stylesheet" href="includes/css/gallery_style.css">
   <script src="script2.js" defer></script>
 </head>

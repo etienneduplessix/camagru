@@ -39,60 +39,6 @@
             display: block;
         }
 
-        /* Like Button Styling */
-        .like-button {
-            position: absolute;
-            background-color: rgba(200, 200, 200, 0.8);
-            border: none;
-            border-radius: 50%;
-            padding: 8px;
-            width: 30px;
-            height: 30px;
-            text-align: center;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            font-size: 16px;
-        }
-
-        .like-button.liked {
-            background-color: red;
-            color: white;
-        }
-
-        /* Positioning Like Button (Only Bottom Left) */
-        .like-bottom-left {
-            bottom: 8px;
-            left: 8px;
-        }
-
-        /* Comment Section */
-        .comment-section {
-            margin-top: 10px;
-        }
-
-        .comment-section input {
-            width: 80%;
-            padding: 5px;
-            margin-right: 5px;
-        }
-
-        .comment-button {
-            cursor: pointer;
-            background: #007BFF;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-        }
-
-        .comments-container {
-            margin-top: 10px;
-            font-size: 14px;
-            border: 1px solid #ccc;
-            padding: 5px;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-        }
     </style>
 </head>
 <body>

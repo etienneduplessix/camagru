@@ -1,28 +1,18 @@
 <?php
+session_start();
+require_once 'includes/functions.php';
 
+header('Content-Type: application/json');
 
-$data = [
-    'email' => 'testuser@example.com',
-    'password' => 'StrongP@ssw0rd123',
-    'confirm_password' => 'StrongP@ssw0rd123'
-];
-
-$options = [
-    'http' => [
-        'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
-        'method' => 'POST',
-        'content' => http_build_query($data),
-    ]
-];
-
-$context = stream_context_create($options);
-$result = file_get_contents($apiUrl, false, $context);
-
-if ($result === FALSE) {
-    echo "Error: Registration test failed!\n";
+// Check if the user is logged in and get the user ID
+if (Auth::isLoggedIn()) {
+    echo json_encode([
+        'success' => true,
+        'user_id' => Auth::getUserId(),
+        'username' => Auth::currentUser()
+    ]);
 } else {
-    echo "Registration test response:\n";
-    echo $result . "\n";
+    http_response_code(401);
+    echo json_encode(['error' => 'User not logged in']);
 }
-
 ?>

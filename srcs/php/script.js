@@ -117,41 +117,53 @@ document.addEventListener("DOMContentLoaded", () => {
             .catch(error => console.error('Error loading sidebar:', error));
     }
 
-    function loadImages() {
-        fetch('pics_api.php')
-          .then(response => response.json())
-          .then(data => {
-              const container = document.getElementById('imageContainer');
-              if (!container) {
-                  console.error("imageContainer element not found!");
-                  return;
-              }
-              container.innerHTML = "<h2>Images</h2>";
+   function loadImages() {
+    fetch('pics_api2.php')
+        .then(response => response.text()) // Read as text first
+        .then(text => {
+            console.log("Raw response from server:", text); // Log raw response
 
-              if (Array.isArray(data) && data.length > 0) {
-                  data.forEach(imageData => {
-                      const wrapper = document.createElement('div');
-                      wrapper.className = 'wrapper';
-                      wrapper.style.position = "relative";
+            try {
+                const data = JSON.parse(text); // Try parsing JSON
+                console.log("Parsed JSON:", data); // Log parsed JSON
 
-                      const img = new Image();
-                      img.src = imageData.src;
-                      img.onerror = () => console.error("Error loading:", img.src);
-                      img.style.width = "100%";
-                      img.style.display = "block";
+                const container = document.getElementById('imageContainer');
+                if (!container) {
+                    console.error("imageContainer element not found!");
+                    return;
+                }
+                container.innerHTML = "<h2>Images</h2>";
 
-                      wrapper.appendChild(img);
-                      container.appendChild(wrapper);
-                  });
-              } else {
-                  container.innerHTML += "<p>No images found.</p>";
-              }
-          })
-          .catch(error => {
-              console.error("Error fetching images:", error);
-              document.getElementById('previewArea').innerHTML = "<p>Error loading images.</p>";
-          });
-    }
+                if (Array.isArray(data) && data.length > 0) {
+                    data.forEach(imageData => {
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'wrapper';
+                        wrapper.style.position = "relative";
+
+                        const img = new Image();
+                        img.src = imageData.src;
+                        img.onerror = () => console.error("Error loading:", img.src);
+                        img.style.width = "100%";
+                        img.style.display = "block";
+
+                        wrapper.appendChild(img);
+                        container.appendChild(wrapper);
+                    });
+                } else {
+                    container.innerHTML += "<p>No images found.</p>";
+                }
+            } catch (jsonError) {
+                console.error("JSON parse error:", jsonError.message);
+                console.error("Raw response was not valid JSON.");
+                document.getElementById('previewArea').innerHTML = "<p>Error loading images.</p>";
+            }
+        })
+        .catch(error => {
+            console.error("Error fetching images:", error);
+            document.getElementById('previewArea').innerHTML = "<p>Error loading images.</p>";
+        });
+}
+
 
     // Additional event listener for any button clicks to toggle "selected" state
     buttons.forEach(button => {
@@ -215,14 +227,14 @@ document.addEventListener("DOMContentLoaded", () => {
         sendImageToServer(imageData);
     });
 
-    // Updated sendImageToServer function
     function sendImageToServer(imageData) {
         const selectedButton = document.querySelector('.button-group .selected');
-        if (overlay === '') {
-            alert("Please select a filter before sending to database.");
+        
+        if (typeof overlay === 'undefined' || overlay === '') {
+            alert("Please select a filter before sending to the database.");
             return;
         }
-
+    
         const payload = {
             image: imageData,
             effect: overlay
@@ -234,20 +246,31 @@ document.addEventListener("DOMContentLoaded", () => {
             credentials: 'include',
             body: JSON.stringify(payload)
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log("Raw Response:", response);
+            return response.json().catch(() => {
+                throw new Error("Invalid JSON response from server");
+            });
+        })
         .then(data => {
-            console.log("Upload response:", data);
-            if (data.error) {
-                throw new Error(data.error);
+            console.log("Parsed Response:", data);
+            if (data.status === 'success') {
+                alert("Image uploaded successfully!");
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                alert(`Error: ${data.message}`);
             }
-            alert(data.message);
-            loadImages();
         })
         .catch(error => {
-            console.log('Error uploading image:', error);
-            alert('Failed to upload image. Please try again.');
+            console.error("Error uploading image:", error);
+            alert("Upload failed: " + error.message);
         });
     }
+    
+    
+
 
     loadSidebar();
     loadImages();

@@ -3,6 +3,11 @@ session_start();
 header('Content-Type: application/json');
 require_once('includes/db.php'); // Ensure this file correctly connects to PostgreSQL
 
+// Enable error reporting for debugging
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 // Ensure request is POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(["error" => "Invalid request method."]);
@@ -20,14 +25,23 @@ if (empty($token) || empty($newPassword)) {
     exit();
 }
 
-try {
-    $conn = getConnection(); // Get PostgreSQL connection
+// Establish database connection
+$conn = getConnection();
+if (!$conn) {
+    echo json_encode(["error" => "Database connection failed."]);
+    exit();
+}
 
+try {
     // Check if the token exists and is still valid
     $query = "SELECT id, token_expiry FROM users WHERE password_reset_token = $1";
     $result = pg_query_params($conn, $query, [$token]);
 
-    if (!$result || pg_num_rows($result) === 0) {
+    if (!$result) {
+        echo json_encode(["error" => "Database error while checking token."]);
+        exit();
+    }
+    if (pg_num_rows($result) === 0) {
         echo json_encode(["error" => "Invalid or expired token."]);
         exit();
     }
@@ -35,7 +49,8 @@ try {
     $user = pg_fetch_assoc($result);
     
     // Check if token has expired
-    if (strtotime($user['token_expiry']) < time()) {
+    $tokenExpiry = strtotime($user['token_expiry']);
+    if (!$tokenExpiry || $tokenExpiry < time()) {
         echo json_encode(["error" => "This reset token has expired."]);
         exit();
     }
@@ -48,7 +63,7 @@ try {
     $updateResult = pg_query_params($conn, $updateQuery, [$hashedPassword, $user['id']]);
 
     if (!$updateResult) {
-        echo json_encode(["error" => "Failed to update password."]);
+        echo json_encode(["error" => "Failed to update password. Database error: " . pg_last_error($conn)]);
         exit();
     }
 

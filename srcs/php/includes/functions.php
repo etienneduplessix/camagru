@@ -1,6 +1,5 @@
 <?php
 declare(strict_types=1);
-
 error_reporting(E_ALL);
 
 /**
@@ -25,41 +24,51 @@ class Config {
 class Auth {
     private const SESSION_KEY = 'moi';
     private const TOKEN_KEY = 'sessiontoken';
+    private const USER_ID_KEY = 'user_id'; // Assuming this is the key for user ID in the session
 
-    /**
-     * Logs out the current user.
-     */
-    public static function logOut(): void {
-        session_unset();
+    /** 
+     * Logs out the current user. 
+     */ 
+    public static function logOut(): void { 
+        session_unset(); 
+    } 
+
+    /** 
+     * Checks whether a user is currently logged in. 
+     * 
+     * @return bool 
+     */ 
+    public static function isLoggedIn(): bool { 
+        return isset($_SESSION[self::SESSION_KEY]); 
+    } 
+
+    /** 
+     * Returns the current logged-in username. 
+     * 
+     * @return string|null 
+     */ 
+    public static function currentUser (): ?string { 
+        return $_SESSION[self::SESSION_KEY] ?? null; 
+    } 
+
+    /** 
+     * Returns the current logged-in user ID. 
+     * 
+     * @return int|null 
+     */ 
+    public static function getUserId(): ?int { 
+        return $_SESSION[self::USER_ID_KEY] ?? null; 
     }
 
-    /**
-     * Checks whether a user is currently logged in.
-     *
-     * @return bool
-     */
-    public static function isLoggedIn(): bool {
-        return isset($_SESSION[self::SESSION_KEY]);
-    }
-
-    /**
-     * Returns the current logged-in username.
-     *
-     * @return string|null
-     */
-    public static function currentUser(): ?string {
-        return $_SESSION[self::SESSION_KEY] ?? null;
-    }
-
-    /**
-     * Redirects to a given URL and exits.
-     *
-     * @param string $href
-     */
-    private static function redirectTo(string $href): void {
-        header("Location: {$href}");
-        exit;
-    }
+    /** 
+     * Redirects to a given URL and exits. 
+     * 
+     * @param string $href 
+     */ 
+    private static function redirectTo(string $href): void { 
+        header("Location: {$href}"); 
+        exit; 
+    } 
 }
 
 /**

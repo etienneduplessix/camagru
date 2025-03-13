@@ -70,6 +70,7 @@ footer {
     max-height: 50vh;
     object-fit: cover;
     aspect-ratio: 1/2;
+    margin-bottom: 60px; /* Add space below the preview image */
 }
 
 .preview-area {
@@ -77,19 +78,24 @@ footer {
     height: 100%;
     margin: 0 auto;
     display: flex;
+    flex-direction: column; /* Change to column layout */
     justify-content: center;
     align-items: center;
     aspect-ratio: 1/2;
+    position: relative; /* Add relative positioning */
+    padding-bottom: 60px; /* Add padding at bottom */
 }
 
 .button-group {
-    position: absolute;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 0 10px;
+    position: relative; /* Change from absolute to relative */
+    bottom: auto; /* Remove absolute positioning */
+    left: auto; /* Remove absolute positioning */
+    transform: none; /* Remove transform */
+    padding: 10px;
     display: flex;
     gap: 15px;
+    justify-content: center; /* Center the buttons */
+    margin-top: 20px; /* Add space between preview and buttons */
 }
 
 .btn {

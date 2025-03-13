@@ -37,13 +37,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     // Add Like Button (Bottom-Left Only)
                     const likeBtn = document.createElement('button');
-                    likeBtn.className = 'like-button like-bottom-left';
+                    likeBtn.className = 'like-button';
                     likeBtn.innerText = '❤️';
                     likeBtn.setAttribute("data-image-id", imageData.id);
+                    likeBtn.style.marginRight = "5px"
 
                     // Set button position
                     likeBtn.style.position = "absolute";
-                    likeBtn.style.bottom = "8px";
+                    likeBtn.style.top = "8px";
                     likeBtn.style.left = "8px";
 
                     // Restore like state from localStorage
@@ -64,15 +65,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     commentInput.type = 'text';
                     commentInput.placeholder = 'Write a comment...';
                     commentInput.style.width = "80%";
-                    commentInput.style.padding = "5px";
-                    commentInput.style.marginRight = "5px";
                     commentInput.setAttribute("data-image-id", imageData.id);
 
                     // Submit comment button
                     const submitCommentBtn = document.createElement('button');
                     submitCommentBtn.innerText = 'Post';
                     submitCommentBtn.className = 'comment-button';
-                    submitCommentBtn.style.cursor = "pointer";
+                    submitCommentBtn.style.cursor = "pointer";// Positioning
+                    submitCommentBtn.style.left = "1000px";  // Anchors to the left
 
                     submitCommentBtn.addEventListener('click', () => {
                         const commentText = commentInput.value.trim();
@@ -130,28 +130,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 credentials: "include", // Ensures the session is passed
                 body: JSON.stringify({ image_id: imageId })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    console.error("Like failed:", data.error);
-                    alert(data.error); // Display error to user
-                    localStorage.setItem(`liked_${imageId}`, isLiked ? "true" : "false");
-                    button.style.backgroundColor = isLiked ? "red" : "rgba(200,200,200,0.8)";
-                } else {
-                    console.log("Like successful:", data.success);
-                }
-            })
-            .catch(error => {
-                console.error("Error:", error);
-                alert("An error occurred. Please try again.");
-                // Revert UI on failure
-                localStorage.setItem(`liked_${imageId}`, isLiked ? "true" : "false");
-                button.style.backgroundColor = isLiked ? "red" : "rgba(200,200,200,0.8)";
-            });
         }
 
 
-    /** Function to Post a Comment **/
+        /** Function to Post a Comment **/
+/** Function to Post a Comment **/
     function putComment(imageId, comment, commentContainer) {
         fetch("put_comment.php", {
             method: "POST",
@@ -159,15 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
             credentials: "include",
             body: JSON.stringify({ image_id: imageId, comment: comment })
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                displayComment(comment, commentContainer);
-            } else {
-                console.error("Error posting comment:", data.error);
-            }
-        })
-        .catch(error => console.error("Error:", error));
+        location.reload();
     }
 
     /** Function to Display a Comment in the UI **/
@@ -178,6 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
         commentItem.style.padding = "5px";
         commentItem.style.borderBottom = "1px solid #ddd";
         commentContainer.appendChild(commentItem);
+        
     }
 
     // Load images and comments when the page is ready

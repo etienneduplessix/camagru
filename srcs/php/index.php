@@ -25,7 +25,7 @@ if (!isset($_SESSION['user']['id'])) {
         </nav>
     </header>
     <div class="main-content">
-        <main class="content">
+
             <div class="controls">
                 <button class="btn btn-primary" id="startCamera">Start Camera</button>
                 <label class="btn btn-success">
@@ -34,6 +34,7 @@ if (!isset($_SESSION['user']['id'])) {
                 </label>
                 <button class="btn btn-success" id="sendToDB">Send to DB</button>
             </div>
+        <main class="content">
             <div class="editor">
                 <div class="preview">
                     <div class="preview-area" id="previewArea">
