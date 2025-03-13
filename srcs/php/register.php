@@ -100,12 +100,25 @@ function showRegistrationForm() { ?>
 
             <div id="error-message" class="error-message" style="display: none;"></div>
             <div id="success-message" class="success-message" style="display: none;"></div>
+            <form class="auth-form" method="POST" action="/register.php">
+                <!-- Username: 3-20 characters, only letters, numbers, and underscores -->
+                <input type="text" name="username" placeholder="Username" required
+                    pattern="^[a-zA-Z0-9_]{3,20}$"
+                    title="Username must be 3-20 characters long and contain only letters, numbers, and underscores.">
+                
+                <!-- Email: Standard email format -->
+                <input type="email" name="email" placeholder="Email" required
+                    pattern="^\S+@\S+\.\S+$"
+                    title="Please enter a valid email address.">
 
-            <form class="auth-form" method="POST" action="/register.php" onsubmit="return validatePassword()">
-                <input type="text" name="username" placeholder="Username" required>
-                <input type="email" name="email" placeholder="Email" required>
-                <input type="password" id="password" name="password" placeholder="Password" required>
-                <input type="password" id="confirm_password" placeholder="Confirm Password" required>
+                <!-- Password: At least 8 characters, one uppercase, one lowercase, one number, and one special character -->
+                <input type="password" id="password" name="password" placeholder="Password" required
+                    pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
+                    title="Password must be at least 8 characters long, include an uppercase letter, a lowercase letter, a number, and a special character.">
+
+                <!-- Confirm Password: Must match the first password field -->
+                <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm Password" required>
+
                 <button type="submit">Register</button>
             </form>
 

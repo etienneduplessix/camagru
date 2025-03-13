@@ -1,4 +1,18 @@
 document.addEventListener("DOMContentLoaded", () => {
+    let userLoggedIn = false; // Default to false, will be updated by API check
+
+    /** Function to Check If User is Logged In **/
+    function checkUserLoginStatus() {
+        return fetch("check_login.php", { credentials: "include" })
+            .then(response => response.json())
+            .then(data => {
+                userLoggedIn = data.logged_in; // Set global variable
+            })
+            .catch(error => {
+                console.error("Error checking login status:", error);
+            });
+    }
+
     /** Load Images and Associated Comments **/
     function loadImages() {
         fetch('pics_api.php')
@@ -35,24 +49,27 @@ document.addEventListener("DOMContentLoaded", () => {
                     // Append image to wrapper
                     wrapper.appendChild(img);
 
-                    // Add Like Button (Bottom-Left Only)
+                    // Add Like Button
                     const likeBtn = document.createElement('button');
                     likeBtn.className = 'like-button';
                     likeBtn.innerText = '❤️';
                     likeBtn.setAttribute("data-image-id", imageData.id);
-                    likeBtn.style.marginRight = "5px"
-
-                    // Set button position
+                    likeBtn.style.marginRight = "5px";
                     likeBtn.style.position = "absolute";
                     likeBtn.style.top = "8px";
                     likeBtn.style.left = "8px";
 
                     // Restore like state from localStorage
                     if (localStorage.getItem(`liked_${imageData.id}`) === "true") {
-                        likeBtn.style.backgroundColor = "red";
+                        likeBtn.style.backgroundColor = "white";
+                        likeBtn.style.color = "red";
                     }
 
                     likeBtn.addEventListener('click', () => {
+                        if (!userLoggedIn) {
+                            alert("You must be logged in to like an image.");
+                            return;
+                        }
                         likeImage(imageData.id, likeBtn);
                     });
 
@@ -71,10 +88,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     const submitCommentBtn = document.createElement('button');
                     submitCommentBtn.innerText = 'Post';
                     submitCommentBtn.className = 'comment-button';
-                    submitCommentBtn.style.cursor = "pointer";// Positioning
-                    submitCommentBtn.style.left = "1000px";  // Anchors to the left
+                    submitCommentBtn.style.cursor = "pointer";
+                    submitCommentBtn.style.left = "1000px";  
 
                     submitCommentBtn.addEventListener('click', () => {
+                        if (!userLoggedIn) {
+                            alert("You must be logged in to post a comment.");
+                            return;
+                        }
                         const commentText = commentInput.value.trim();
                         if (commentText !== "") {
                             putComment(imageData.id, commentText, commentsContainer);
@@ -108,41 +129,58 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /** Function to Like an Image **/
-/** Function to Like an Image **/
-        function likeImage(imageId, button) {
-            const isLiked = localStorage.getItem(`liked_${imageId}`) === "true";
-
-            // Toggle the like state
-            const newLikeStatus = !isLiked;
-
-            // Update UI immediately
-            button.style.backgroundColor = newLikeStatus ? "red" : "rgba(200,200,200,0.8)";
-
-            // Save like status in localStorage
-            localStorage.setItem(`liked_${imageId}`, newLikeStatus ? "true" : "false");
-
-            // Send the like/unlike request to the API
-            fetch("likes_api.php", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                credentials: "include", // Ensures the session is passed
-                body: JSON.stringify({ image_id: imageId })
-            })
+    function likeImage(imageId, button) {
+        if (!userLoggedIn) {
+            alert("You must be logged in to like an image.");
+            return;
         }
 
+        // Send like request to API first, then update UI if successful
+        fetch("likes_api.php", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            credentials: "include",
+            body: JSON.stringify({ image_id: imageId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Toggle the like state only if the request is successful
+                const isLiked = localStorage.getItem(`liked_${imageId}`) === "true";
+                const newLikeStatus = !isLiked;
 
-        /** Function to Post a Comment **/
-/** Function to Post a Comment **/
+                // Update UI
+                button.style.backgroundColor = newLikeStatus ? "red" : "rgba(200,200,200,0.8)";
+                localStorage.setItem(`liked_${imageId}`, newLikeStatus ? "true" : "false");
+            } else {
+                alert("Failed to like image.");
+            }
+        })
+        .catch(error => {
+            console.error("Error liking image:", error);
+        });
+    }
+
+    /** Function to Post a Comment **/
     function putComment(imageId, comment, commentContainer) {
+        if (!userLoggedIn) {
+            alert("You must be logged in to post a comment.");
+            return;
+        }
+
         fetch("put_comment.php", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
             body: JSON.stringify({ image_id: imageId, comment: comment })
         })
-        location.reload();
+        .then(response => response.json())
+        .then(() => {
+            location.reload();
+        })
+        .catch(error => console.error("Error posting comment:", error));
     }
 
     /** Function to Display a Comment in the UI **/
@@ -153,9 +191,10 @@ document.addEventListener("DOMContentLoaded", () => {
         commentItem.style.padding = "5px";
         commentItem.style.borderBottom = "1px solid #ddd";
         commentContainer.appendChild(commentItem);
-        
     }
 
-    // Load images and comments when the page is ready
-    loadImages();
+    // First, check if the user is logged in before loading images
+    checkUserLoginStatus().then(() => {
+        loadImages();
+    });
 });

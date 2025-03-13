@@ -1,38 +1,48 @@
 <?php
-// Start the session if not already started
-session_start();
+// Start or resume the session
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Include necessary files
 require_once('includes/loader.php');
 
-// Log the logout attempt (helpful for debugging)
+// Log the logout attempt
 error_log("Logout attempt initiated. User status: " . (Auth::isLoggedIn() ? "Logged in" : "Not logged in"));
 
-// Always perform logout actions regardless of login status
-// Clear session variables
-$_SESSION = array();
+// Unset all session variables
+$_SESSION = [];
+
+// Get session parameters before destroying it
+$params = session_get_cookie_params();
 
 // Destroy the session
-session_destroy();
-
-// Clear the session cookie
-if (ini_get("session.use_cookies")) {
-    $params = session_get_cookie_params();
-    setcookie(
-        session_name(),
-        '',
-        time() - 42000,
-        $params["path"],
-        $params["domain"],
-        $params["secure"],
-        $params["httponly"]
-    );
+if (session_id() !== "") {
+    session_destroy(); // Destroys session file
 }
 
-// Clear any authentication cookies (if used)
-setcookie("auth_token", "", time() - 3600, "/"); 
+// Remove session cookie
+setcookie(
+    session_name(), // Gets session name
+    '', 
+    time() - 42000, // Expire in the past
+    $params["path"], 
+    $params["domain"], 
+    $params["secure"], 
+    $params["httponly"]
+);
 
-// Make sure there's no whitespace or output before this point
+// Remove authentication token cookie (if used)
+setcookie("auth_token", "", time() - 3600, "/");
+
+// Unset $_COOKIE global to prevent reuse
+unset($_COOKIE[session_name()]);
+unset($_COOKIE['auth_token']);
+
+// Log the logout success
+error_log("Logout successful. Session fully destroyed.");
+
+// Redirect to homepage
 header("Location: /index.php");
 exit();
 ?>

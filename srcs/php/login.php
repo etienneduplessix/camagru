@@ -42,10 +42,19 @@ if (Auth::isLoggedIn()) {
     <div id="error-message" class="error-message" style="display: none;"></div>
 
 
-    <form class="auth-form" id="login-form">
+    <form class="auth-form" id="login-form" method="POST" action="/login.php">
         <input type="hidden" name="token" value="<?php echo htmlspecialchars($token); ?>">
-        <input type="username" name="username" id="username" placeholder="Username" required>
-        <input type="password" name="password" id="password" placeholder="Password" required>
+
+        <!-- Username: 3-20 characters, only letters, numbers, and underscores -->
+        <input type="text" name="username" id="username" placeholder="Username" required
+               pattern="^[a-zA-Z0-9_]{3,20}$"
+               title="Username must be 3-20 characters long and contain only letters, numbers, and underscores.">
+
+        <!-- Password: Minimum 8 characters, at least 1 uppercase, 1 lowercase, 1 number -->
+        <input type="password" name="password" id="password" placeholder="Password" required
+               pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$"
+               title="Password must be at least 8 characters long, include an uppercase letter, a lowercase letter, and a number.">
+
         <button type="submit" name="login">Sign In</button>
     </form>
 
