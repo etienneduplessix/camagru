@@ -4,12 +4,8 @@ session_start();
 require_once('includes/loader.php');
 require_once('includes/db.php');
 
-error_log("🔍 Entered register.php");
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    error_log("📩 Received POST request");
-
-    $apiUrl = 'http://php_web/register_api.php'; // Use Docker service name
+    $apiUrl = 'http://php_web/register_api.php';
 
     $data = [
         'username' => trim($_POST['username'] ?? ''),
@@ -18,40 +14,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ];
 
     if (empty($data['username']) || empty($data['email']) || empty($data['password'])) {
-        error_log("⚠️ Missing form fields, redirecting.");
         $_SESSION['errors'] = "All fields are required.";
         header('Location: /register');
         exit;
     }
 
-    error_log("🚀 Sending request to API: " . $apiUrl);
-    error_log("📝 Data being sent: " . print_r($data, true));
-
-    // Convert data into a query string
     $postData = http_build_query($data);
 
-    // Set HTTP request options
     $options = [
         'http' => [
             'method'  => 'POST',
             'header'  => "Content-Type: application/x-www-form-urlencoded\r\n" .
                          "Content-Length: " . strlen($postData) . "\r\n",
             'content' => $postData,
-            'timeout' => 10 // Timeout after 10 seconds
+            'timeout' => 10
         ]
     ];
 
-    // Create stream context
     $context = stream_context_create($options);
-    
-    // Send request and get response
     $result = @file_get_contents($apiUrl, false, $context);
 
-    // Get HTTP response code
     $httpCode = isset($http_response_header[0]) ? $http_response_header[0] : "Unknown";
-
-    error_log("📩 API Response: " . ($result ?: "No response"));
-    error_log("🔢 HTTP Code: " . $httpCode);
 
     if ($result === FALSE) {
         $_SESSION['errors'] = "Registration failed: Unable to contact the API.";
@@ -59,94 +42,98 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['errors'] = "Registration failed: " . ($result ?: "Unexpected error.");
     } else {
         $_SESSION['success'] = "Registration successful! Please check your email.";
-        error_log("✅ Registration success, redirecting to login.");
         header('Location: /login');
         exit;
     }
 
-    error_log("❌ Redirecting to /register due to errors.");
     header('Location: /register');
     exit;
 }
 
-error_log("👀 Showing registration form.");
 showRegistrationForm();
+
+function showRegistrationForm() {
 ?>
-
-
-<?php
-function showRegistrationForm() { ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>My Website - Home</title>
-  <link rel="stylesheet" href="includes/css/style.css">
-  <script src="script.js" defer></script> <!-- Fixed filename and added 'defer' -->
-<header>
-    <div class="logo">My Website</div>
-    <nav>
-    <a href="index.php">Home</a>
-    <a href="user_management.php">User Management</a>
-    <a href="galerie.php">Galerie</a>
-    <a href="logout.php">Logout</a> 
-    </nav>
-</header>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camagru - Register</title>
+    <link rel="stylesheet" href="includes/css/style.css">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
 </head>
 <body>
-    <div class="auth-container">
-        <div class="auth-box">
+    <header>
+        <div class="header-content">
+            <a href="/" class="logo">Camagru</a>
+            <nav>
+                <a href="login.php">Login</a>
+                <a href="register.php">Register</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
             <h1>Create Account</h1>
 
-            <div id="error-message" class="error-message" style="display: none;"></div>
-            <div id="success-message" class="success-message" style="display: none;"></div>
-            <form class="auth-form" method="POST" action="/register.php">
-                <!-- Username: 3-20 characters, only letters, numbers, and underscores -->
-                <input type="text" name="username" placeholder="Username" required
-                    pattern="^[a-zA-Z0-9_]{3,20}$"
-                    title="Username must be 3-20 characters long and contain only letters, numbers, and underscores.">
-                
-                <!-- Email: Standard email format -->
-                <input type="email" name="email" placeholder="Email" required
-                    pattern="^\S+@\S+\.\S+$"
-                    title="Please enter a valid email address.">
+            <?php if (isset($_SESSION['errors'])): ?>
+                <div id="error-message" class="error-message show"><?php echo htmlspecialchars($_SESSION['errors']); unset($_SESSION['errors']); ?></div>
+            <?php endif; ?>
 
-                <!-- Password: At least 8 characters, one uppercase, one lowercase, one number, and one special character -->
-                <input type="password" id="password" name="password" placeholder="Password" required
-                    pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
-                    title="Password must be at least 8 characters long, include an uppercase letter, a lowercase letter, a number, and a special character.">
+            <form id="register-form" method="POST" action="/register.php">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" name="username" id="username" placeholder="Choose a username" required
+                        pattern="^[a-zA-Z0-9_]{3,20}$"
+                        title="Username must be 3-20 characters long and contain only letters, numbers, and underscores.">
+                </div>
 
-                <!-- Confirm Password: Must match the first password field -->
-                <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm Password" required>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" name="email" id="email" placeholder="Enter your email" required
+                        title="Please enter a valid email address.">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Create a password" required
+                        pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
+                        title="Password must be at least 8 characters long, include an uppercase letter, a lowercase letter, a number, and a special character.">
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm_password">Confirm Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm your password" required>
+                </div>
 
                 <button type="submit">Register</button>
             </form>
 
             <div class="form-footer">
-                <p>Already have an account? <a href="/login.php">Login here</a></p>
+                <p>Already have an account? <a href="login.php">Login here</a></p>
             </div>
         </div>
-    </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Camagru. All rights reserved.</p>
+    </footer>
 
     <script>
-        function validatePassword() {
+        document.getElementById("register-form").addEventListener("submit", function(event) {
             var password = document.getElementById("password").value;
             var confirmPassword = document.getElementById("confirm_password").value;
             var errorMessage = document.getElementById("error-message");
 
             if (password !== confirmPassword) {
-                errorMessage.innerHTML = "Passwords do not match!";
-                errorMessage.style.display = "block";
-                return false;
+                event.preventDefault();
+                errorMessage.textContent = "Passwords do not match!";
+                errorMessage.classList.add('show');
             }
-            errorMessage.style.display = "none";
-            return true;
-        }
+        });
     </script>
-<footer>
-    &copy; 2025 My Websit
-  </footer>
 </body>
 </html>
-
 <?php } ?>

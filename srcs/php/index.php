@@ -1,5 +1,7 @@
 <?php
 session_start();
+require_once('includes/loader.php');
+
 if (!isset($_SESSION['user']['id'])) {
     header("Location: /login.php");
     exit();
@@ -10,54 +12,60 @@ if (!isset($_SESSION['user']['id'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Website - Home</title>
+    <title>Camagru - Editor</title>
     <link rel="stylesheet" href="includes/css/index_style.css">
-    <script src="script.js" defer></script>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
 </head>
 <body>
     <header>
-        <div class="logo">My Website</div>
-        <nav>
-            <a href="index.php">Home</a>
-            <a href="user_management.php">User Management</a>
-            <a href="galerie.php">Galerie</a>
-            <a href="logout.php">Logout</a>
-        </nav>
+        <div class="header-content">
+            <a href="/" class="logo">Camagru</a>
+            <nav>
+                <a href="index.php">Editor</a>
+                <a href="galerie.php">Gallery</a>
+                <a href="user_management.php">Profile</a>
+                <a href="logout.php">Logout</a>
+            </nav>
+        </div>
     </header>
-    <div class="main-content">
 
-            <div class="controls">
-                <button class="btn btn-primary" id="startCamera">Start Camera</button>
-                <label class="btn btn-success">
-                    Upload Photo
-                    <input type="file" id="fileInput" accept="image/*" style="display: none;">
-                </label>
-                <button class="btn btn-success" id="sendToDB">Send to DB</button>
-            </div>
-        <main class="content">
-            <div class="editor">
-                <div class="preview">
-                    <div class="preview-area" id="previewArea">
-                        <video id="video" autoplay playsinline style="width: 100%; height: auto;"></video>
-                        <img id="preview" src="" alt="" style="width: 100%; height: auto; display: none;">
-                        <canvas id="canvas" style="display: none;"></canvas>
-                    </div>
+    <main>
+        <div class="editor-container">
+            <div class="editor-main">
+                <div class="preview-area" id="previewArea">
+                    <video id="video" autoplay playsinline></video>
+                    <img id="preview" src="" alt="" style="display: none;">
+                    <canvas id="canvas" style="display: none;"></canvas>
+                </div>
+
+                <div class="overlay-select">
+                    <img src="png/cat.png" class="overlay-option" data-overlay="cat" alt="Cat">
+                    <img src="png/sun.png" class="overlay-option" data-overlay="sun" alt="Sun">
+                    <img src="png/flower.png" class="overlay-option" data-overlay="flower" alt="Flower">
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-primary" id="startCamera">Start Camera</button>
+                    <label class="btn btn-success">
+                        Upload Photo
+                        <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                    </label>
+                    <button class="btn btn-success" id="sendToDB" disabled>Capture</button>
                 </div>
             </div>
-            <div class="tata">
-                <div class="button-group">
-                    <button class="btn btn-success" id="cat">Cat</button>
-                    <button class="btn btn-success" id="sun">Sun</button>
-                    <button class="btn btn-success" id="flower">Flower</button>
+
+            <div class="editor-sidebar">
+                <h3 class="sidebar-title">My Images</h3>
+                <div class="thumbnails" id="thumbnails">
                 </div>
             </div>
-        </main>
-        <aside class="sidebar" id="sidebar-container">
-            <!-- Sidebar content goes here -->
-        </aside>
-    </div>
+        </div>
+    </main>
+
     <footer>
-        &copy; 2025 My Website
+        <p>&copy; 2025 Camagru. All rights reserved.</p>
     </footer>
+
+    <script src="script.js" defer></script>
 </body>
 </html>

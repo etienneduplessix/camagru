@@ -3,25 +3,18 @@ session_start();
 require_once('includes/db.php');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    error_log("📩 Received POST request for password reset");
-    
-    // Use HTTPS in production
-    $apiUrl = 'http://php_web/forgot_password.php'; // Docker service name for API
+    $apiUrl = 'http://php_web/forgot_password.php';
     
     $data = [
         'email' => filter_var(trim($_POST['email'] ?? ''), FILTER_SANITIZE_EMAIL)
     ];
     
     if (empty($data['email']) || !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-        error_log("⚠️ Invalid email, redirecting.");
         $_SESSION['errors'] = "Please enter a valid email address.";
         header('Location: /rebootpass.php');
         exit;
     }
     
-    error_log("🚀 Sending request to API: " . $apiUrl);
-    
-    // Set up a proper JSON request
     $options = [
         'http' => [
             'method' => 'POST',
@@ -41,14 +34,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         $response = json_decode($result, true);
-        $httpCode = isset($http_response_header[0]) ? $http_response_header[0] : "Unknown";
-        
-        error_log("📩 API Response: " . ($result ?: "No response"));
-        error_log("🔢 HTTP Code: " . $httpCode);
         
         if (isset($response['success'])) {
             $_SESSION['success'] = $response['success'];
-            error_log("✅ Password reset request successful, redirecting.");
             header('Location: /login.php');
             exit;
         } else if (isset($response['error'])) {
@@ -57,60 +45,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['errors'] = "An unexpected error occurred.";
         }
     } catch (Exception $e) {
-        error_log("❌ Exception caught: " . $e->getMessage());
         $_SESSION['errors'] = "Password reset failed: Unable to process your request.";
     }
     
-    error_log("❌ Redirecting to /rebootpass.php due to errors.");
-    header('Location: login.php');
+    header('Location: /rebootpass.php');
     exit;
 }
-
-error_log("👀 Showing password reset form.");
-showPasswordResetForm();
-
-function showPasswordResetForm() {
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reset Password - Camagru</title>
+    <title>Camagru - Reset Password</title>
     <link rel="stylesheet" href="includes/css/style.css">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
 </head>
 <body>
-    <div class="auth-container">
-        <div class="auth-box">
+    <header>
+        <div class="header-content">
+            <a href="/" class="logo">Camagru</a>
+            <nav>
+                <a href="login.php">Login</a>
+                <a href="register.php">Register</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
             <h1>Reset Password</h1>
-            <p>Enter your email to receive reset instructions</p>
+            <p style="text-align: center; margin-bottom: 20px;">Enter your email to receive reset instructions</p>
             
             <?php if (isset($_SESSION['errors'])): ?>
-                <div class="error-message">
-                    <?= htmlspecialchars($_SESSION['errors']) ?>
-                </div>
-                <?php unset($_SESSION['errors']); ?>
+                <div class="error-message show"><?php echo htmlspecialchars($_SESSION['errors']); unset($_SESSION['errors']); ?></div>
             <?php endif; ?>
             
             <?php if (isset($_SESSION['success'])): ?>
-                <div class="success-message">
-                    <?= htmlspecialchars($_SESSION['success']) ?>
-                </div>
-                <?php unset($_SESSION['success']); ?>
+                <div class="success-message show"><?php echo htmlspecialchars($_SESSION['success']); unset($_SESSION['success']); ?></div>
             <?php endif; ?>
             
-            <form class="auth-form" method="POST" action="<?= htmlspecialchars($_SERVER['PHP_SELF']) ?>">
-                <input type="email" name="email" placeholder="Enter your email" required>
+            <form method="POST" action="/rebootpass.php">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" name="email" id="email" placeholder="Enter your email" required>
+                </div>
                 <button type="submit">Send Reset Link</button>
             </form>
             
             <div class="form-footer">
-                <p>Remembered your password? <a href="/login.php">Login here</a></p>
+                <p>Remembered your password? <a href="login.php">Login here</a></p>
             </div>
         </div>
-    </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Camagru. All rights reserved.</p>
+    </footer>
 </body>
 </html>
-<?php
-}
-?>
